@@ -5,11 +5,9 @@ const TEST_TEXT_PATTERNS = [
   "TEST FORM",
   "TEST REPORT",
   "Test diagnostico",
-  "Test dÃ­agnostico",
-  "Test díagnostico",
-  "diagnostica backend protetta",
-  "dÃ­agnostica backend protetta",
-  "díagnostica backend protetta"
+  "diagnostico",
+  "diagnostic",
+  "diagnostica backend protetta"
 ];
 
 export async function cleanupDiagnosticTestData() {
@@ -28,8 +26,7 @@ export async function cleanupDiagnosticTestData() {
     where: {
       OR: [
         { targetId: { contains: "diagnostic", mode: "insensitive" } },
-        { targetId: { contains: "dÃ­agnostic", mode: "insensitive" } },
-        { targetId: { contains: "díagnostic", mode: "insensitive" } },
+        { targetId: { contains: "diagnost", mode: "insensitive" } },
         ...TEST_TEXT_PATTERNS.map((pattern) => ({ reason: { contains: pattern, mode: "insensitive" as const } })),
         ...TEST_TEXT_PATTERNS.map((pattern) => ({ details: { contains: pattern, mode: "insensitive" as const } }))
       ]
@@ -41,8 +38,7 @@ export async function cleanupDiagnosticTestData() {
       OR: [
         { email: { endsWith: "@example.com", mode: "insensitive" } },
         { email: { contains: "diagnostica-", mode: "insensitive" } },
-        { email: { contains: "dÃ­agnostica-", mode: "insensitive" } },
-        { email: { contains: "díagnostica-", mode: "insensitive" } },
+        { email: { contains: "diagnostic-", mode: "insensitive" } },
         { displayName: { equals: "Diagnostica", mode: "insensitive" } }
       ]
     },
@@ -70,4 +66,3 @@ export async function cleanupDiagnosticTestData() {
       supportDeleted.count + reportsDeleted.count + accountsDeleted.count + activitiesDeleted.count + visitsDeleted.count
   };
 }
-

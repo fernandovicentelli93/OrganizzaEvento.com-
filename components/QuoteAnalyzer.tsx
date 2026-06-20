@@ -1854,7 +1854,9 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   const [, setOcrStatus] = useState<"idle" | "reading" | "ready" | "failed">("idle");
   const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "unavailable" | "error">("idle");
   const [aiAnalysis, setAiAnalysis] = useState<AiQuoteAnalysisState | null>(null);
+  const [showInputAfterAnalysis, setShowInputAfterAnalysis] = useState(false);
   const lastAiSignature = useRef("");
+  const analysisRef = useRef<HTMLElement | null>(null);
   const sourceText = [rawText, imageText].filter(Boolean).join("\n\n");
   const redaction = useMemo(() => redactQuoteText(sourceText), [sourceText]);
   const redactedText = redaction.redactedText;
@@ -1919,6 +1921,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   const hasAiReport = aiStatus === "ready" && aiAnalysis !== null;
   const isWaitingForAi = hasText && !hasAiReport && aiStatus !== "error" && aiStatus !== "unavailable";
   const canOpenDiscussion = hasAiReport;
+  const shouldShowInputPanel = !hasAiReport || showInputAfterAnalysis;
   const askPath = locale === "it" ? "/fai-domanda" : localizedStaticPath(locale, "ask");
 
   function toggleSpecific(value: string) {
@@ -2117,6 +2120,14 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     totalAmount
   ]);
 
+  useEffect(() => {
+    if (!hasAiReport) return;
+    setShowInputAfterAnalysis(false);
+    window.setTimeout(() => {
+      analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  }, [hasAiReport]);
+
   function openDiscussion() {
     if (!canOpenDiscussion) {
       if (hasText && aiStatus !== "loading") void improveWithAI();
@@ -2185,6 +2196,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     <>
       {aiStatus === "loading" ? <AiAnalysisLoadingOverlay copy={copy} /> : null}
       <div className="grid gap-6">
+      {shouldShowInputPanel ? (
       <section className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
         <div className="grid gap-4 xl:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)] xl:items-stretch">
           {uploadControl}
@@ -2273,8 +2285,43 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         ) : null}
 
       </section>
+      ) : (
+        <section className="rounded-md border border-line bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">
+                {locale === "it"
+                  ? "Preventivo elaborato"
+                  : locale === "en"
+                    ? "Quote processed"
+                    : locale === "es"
+                      ? "Presupuesto procesado"
+                      : "Devis analysé"}
+              </p>
+              <h2 className="mt-1 text-base font-semibold text-ink">{detectedServiceLabel}</h2>
+              <p className="mt-1 text-xs leading-5 text-muted">
+                {[files.length ? `${files.length} file` : null, city || province || region || null].filter(Boolean).join(" - ") ||
+                  (locale === "it" ? "Dati letti e analizzati" : locale === "en" ? "Details read and analyzed" : locale === "es" ? "Datos leídos y analizados" : "Données lues et analysées")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowInputAfterAnalysis(true)}
+              className="focus-ring inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-cream px-4 py-2 text-sm font-semibold text-ink transition hover:bg-petal"
+            >
+              {locale === "it"
+                ? "Modifica preventivo"
+                : locale === "en"
+                  ? "Edit quote"
+                  : locale === "es"
+                    ? "Editar presupuesto"
+                    : "Modifier le devis"}
+            </button>
+          </div>
+        </section>
+      )}
 
-      <section className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
+      <section ref={analysisRef} className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
         <div className="z-10 -mx-4 -mt-4 border-b border-line bg-white/95 p-4 backdrop-blur sm:-mx-5 sm:-mt-5 sm:p-5 xl:sticky xl:top-24">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>

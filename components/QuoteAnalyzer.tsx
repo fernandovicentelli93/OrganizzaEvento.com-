@@ -2365,16 +2365,27 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               </div>
             </div>
             {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
-            <details className="rounded-md border border-line bg-white p-4">
-              <summary className="cursor-pointer text-sm font-semibold text-ink">
-                {locale === "it"
-                  ? "Apri dettagli dell'analisi"
-                  : locale === "en"
-                    ? "Open analysis details"
-                    : locale === "es"
-                      ? "Abrir detalles del análisis"
-                      : "Ouvrir les détails de l'analyse"}
-              </summary>
+            <section className="rounded-md border border-line bg-white p-4 shadow-sm">
+              <div className="border-b border-line pb-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">
+                  {locale === "it"
+                    ? "Analisi dettagliata"
+                    : locale === "en"
+                      ? "Detailed analysis"
+                      : locale === "es"
+                        ? "Análisis detallado"
+                        : "Analyse détaillée"}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-ink">
+                  {locale === "it"
+                    ? "Cosa controllare prima di accettare"
+                    : locale === "en"
+                      ? "What to check before accepting"
+                      : locale === "es"
+                        ? "Qué revisar antes de aceptar"
+                        : "Ce qu'il faut vérifier avant d'accepter"}
+                </h2>
+              </div>
               <div className="mt-4 space-y-4">
                 <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
@@ -2383,13 +2394,15 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                 </div>
                 {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
                 <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
-                <Block title={copy.included} items={displayReport.included_items} />
-                <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
-                <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
-                <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <Block title={copy.included} items={displayReport.included_items} />
+                  <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
+                  <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
+                  <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
+                </div>
                 <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
               </div>
-            </details>
+            </section>
           </div>
         ) : (
           <AiAnalysisLoadingCard copy={copy} />

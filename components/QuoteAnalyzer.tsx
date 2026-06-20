@@ -2460,6 +2460,13 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                     <div className="mt-3 max-h-72 overflow-auto whitespace-pre-line rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
                       {communityDiscussion}
                     </div>
+                    <button
+                      type="button"
+                      onClick={openDiscussion}
+                      className="focus-ring mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
+                    >
+                      {formCopy.publishPrivate}
+                    </button>
                   </div>
                 </div>
               </div>

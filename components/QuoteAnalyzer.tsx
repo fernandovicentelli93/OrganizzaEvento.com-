@@ -2036,6 +2036,9 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     if (!hasText || aiStatus === "loading") return;
     setAiAnalysis(null);
     setAiStatus("loading");
+    window.setTimeout(() => {
+      analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
 
     try {
       const response = await fetch("/api/ai/quote-analysis", {
@@ -2100,7 +2103,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     const timeout = window.setTimeout(() => {
       lastAiSignature.current = signature;
       improveWithAI();
-    }, 1400);
+    }, 250);
 
     return () => window.clearTimeout(timeout);
   }, [
@@ -2123,14 +2126,17 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   useEffect(() => {
     if (!hasAiReport) return;
     setShowInputAfterAnalysis(false);
-    window.setTimeout(() => {
-      analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 120);
+    window.requestAnimationFrame(() => {
+      analysisRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+    });
   }, [hasAiReport]);
 
   function openDiscussion() {
     if (!canOpenDiscussion) {
-      if (hasText && aiStatus !== "loading") void improveWithAI();
+      if (hasText && aiStatus !== "loading") {
+        lastAiSignature.current = "";
+        void improveWithAI();
+      }
       return;
     }
     const draftTitle = `Preventivo ${formCopy.serviceOptions[displayReport.detected_service]}${city ? ` a ${city}` : ""}: cosa devo controllare`;
@@ -2488,16 +2494,20 @@ function AiAnalysisLoadingPanel({ copy, elevated = false }: { copy: AnalyzerCopy
   return (
     <div
       className={[
-        "w-full rounded-lg border border-line bg-white p-5 shadow-soft",
-        elevated ? "max-w-md" : "bg-white/95",
+        "w-full rounded-md border border-violet-cta/25 bg-white p-5 shadow-soft",
+        elevated ? "max-w-lg" : "bg-white/95",
       ].join(" ")}
     >
-      <div className="flex items-start gap-3">
-        <LoadingMark />
-        <div className="min-w-0">
-          <h2 className="text-base font-semibold leading-snug text-ink">{copy.loadingTitle}</h2>
-          <p className="mt-1 text-sm leading-6 text-muted">{copy.loadingText}</p>
-        </div>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">
+          {copy.analysisLabel}
+        </p>
+        <h2 className="mt-2 text-xl font-semibold leading-snug text-ink">{copy.loadingTitle}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">{copy.loadingText}</p>
+      </div>
+
+      <div className="mt-5 overflow-hidden rounded-full bg-cream">
+        <div className="h-3 w-full origin-left animate-[quoteAnalysisProgress_1.05s_ease-in-out_infinite] rounded-full bg-violet-cta" />
       </div>
 
       <div className="mt-5 space-y-3">
@@ -2528,17 +2538,6 @@ function AiAnalysisErrorCard({ copy, onRetry }: { copy: AnalyzerCopy; onRetry: (
       >
         {copy.retry}
       </button>
-    </div>
-  );
-}
-
-function LoadingMark() {
-  return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-line bg-cream">
-      <span className="relative flex h-5 w-5">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-cta opacity-30" />
-        <span className="relative inline-flex h-5 w-5 rounded-full bg-violet-cta" />
-      </span>
     </div>
   );
 }

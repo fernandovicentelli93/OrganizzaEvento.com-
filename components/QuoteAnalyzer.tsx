@@ -2310,6 +2310,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
           <AiAnalysisErrorCard copy={copy} onRetry={() => void improveWithAI()} />
         ) : hasAiReport ? (
           <div className="mt-5 space-y-5">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
             <div className="rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -2329,6 +2330,23 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                 </span>
               </div>
             </div>
+            <div className="rounded-md border border-violet-cta/25 bg-white p-4 shadow-sm">
+              <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
+              <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <button
+                  type="button"
+                  onClick={openDiscussion}
+                  className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
+                >
+                  {formCopy.publishPrivate}
+                </button>
+                <VibesSupplierCta variant="light" className="min-h-12 w-full justify-center shadow-none">
+                  {formCopy.compareSuppliers}
+                </VibesSupplierCta>
+              </div>
+            </div>
+            </div>
             <QuoteSupplierStrip
               active={hasAiReport}
               locale={locale}
@@ -2342,28 +2360,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               region={region}
               eventLabel={formCopy.eventOptions[eventType]}
             />
-            <div className="rounded-md border border-violet-cta/25 bg-petal p-4">
-              <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
-              <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={openDiscussion}
-                  className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
-                >
-                  {formCopy.publishPrivate}
-                </button>
-                <VibesSupplierCta variant="light" className="min-h-12 w-full justify-center shadow-none">
-                  {formCopy.compareSuppliers}
-                </VibesSupplierCta>
-              </div>
-            </div>
-            <div className="rounded-md border border-line bg-white p-4">
-              <h2 className="text-base font-semibold text-ink">{copy.publicPost}</h2>
-              <div className="mt-3 max-h-44 overflow-auto whitespace-pre-line rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
-                {communityDiscussion}
-              </div>
-            </div>
             {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
             <section className="rounded-md border border-line bg-white p-4 shadow-sm">
               <div className="border-b border-line pb-4">
@@ -2387,20 +2383,30 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                 </h2>
               </div>
               <div className="mt-4 space-y-4">
-                <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
-                  <h2 className="mt-2 text-lg font-semibold text-ink">{result.topic.title[locale]}</h2>
-                  <p className="mt-2 text-muted">{result.reading}</p>
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+                  <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
+                    <h2 className="mt-2 text-lg font-semibold text-ink">{result.topic.title[locale]}</h2>
+                    <p className="mt-2 text-muted">{result.reading}</p>
+                  </div>
+                  {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
                 </div>
-                {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
                 <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
-                <div className="grid gap-4 lg:grid-cols-2">
+                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                   <Block title={copy.included} items={displayReport.included_items} />
                   <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
                   <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
                   <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
                 </div>
-                <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                  <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
+                  <div className="rounded-md border border-line bg-white p-4">
+                    <h2 className="text-base font-semibold text-ink">{copy.publicPost}</h2>
+                    <div className="mt-3 max-h-72 overflow-auto whitespace-pre-line rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
+                      {communityDiscussion}
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
           </div>
@@ -2748,7 +2754,7 @@ function FindingBlock({ title, items, locale }: { title: string; items: ReturnTy
   if (!items.length) return null;
 
   return (
-    <div>
+    <div className="h-full rounded-md border border-line bg-white p-4">
       <h2 className="text-base font-semibold text-ink">{title}</h2>
       <ul className="mt-2 space-y-2">
         {items.slice(0, 7).map((item) => (
@@ -2772,7 +2778,7 @@ function translatePriority(value: ReturnType<typeof analyzeQuote>["missing_items
 
 function Block({ title, items, accent = false }: { title: string; items: string[]; accent?: boolean }) {
   return (
-    <div>
+    <div className={accent ? "h-full rounded-md border border-violet-cta/25 bg-petal p-4" : "h-full rounded-md border border-line bg-white p-4"}>
       <h2 className="text-base font-semibold text-ink">{title}</h2>
       <ul className="mt-2 space-y-2">
         {items.slice(0, 7).map((item) => (

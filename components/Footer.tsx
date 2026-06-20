@@ -1,61 +1,46 @@
 ﻿"use client";
 
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { SITE_NAME, SUPPORT_EMAIL, SUPPORT_EMAIL_LINK, VIBES_PLANNER_URL } from "@/lib/constants";
 import { footerCopy, localeFromPathname, localizedStaticPath } from "@/lib/i18n-basic";
-
-const DesktopSupplierSearch = dynamic(
-  () => import("@/components/VibesSupplierSearch").then((mod) => mod.VibesSupplierSearch),
-  {
-    ssr: false,
-    loading: () => (
-      <span className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-line bg-white px-4 py-3 text-sm font-semibold text-ink">
-        Cerco Fornitori
-      </span>
-    )
-  }
-);
 
 export function Footer() {
   const pathname = usePathname();
   const locale = localeFromPathname(pathname);
   const copy = footerCopy[locale];
-  const [showDesktopSupplierSearch, setShowDesktopSupplierSearch] = useState(false);
   const supplierFinderCopy =
     locale === "it"
       ? {
           label: "Cerco Fornitori",
           title: "Trova fornitori con AI e Vibes Planner.",
-          text: "Apri la ricerca desktop: categoria, zona e servizio vengono letti dal motore AI e ordinati sulle vetrine Vibes.",
+          text: "Apri il modulo completo: scegli il primo fornitore, aggiungi le altre categorie e mantieni sempre attivi zona, invitati e budget.",
           button: "Cerco Fornitori",
-          link: "Apri la pagina completa"
+          link: "Apri modulo completo"
         }
       : locale === "en"
         ? {
             label: "Find Suppliers",
             title: "Find Italian suppliers with AI and Vibes Planner.",
-            text: "Open the desktop search: category, area and service are read by the AI engine and ranked on Vibes showcases.",
+            text: "Open the full module: choose your first supplier, add more categories and keep area, guests and budget active.",
             button: "Find Suppliers",
-            link: "Open the full page"
+            link: "Open full module"
           }
         : locale === "es"
           ? {
               label: "Buscar Proveedores",
               title: "Encuentra proveedores italianos con AI y Vibes Planner.",
-              text: "Abre la búsqueda desktop: categoría, zona y servicio se leen con AI y se ordenan sobre vitrinas Vibes.",
+              text: "Abre el módulo completo: elige el primer proveedor, añade categorías y conserva zona, invitados y presupuesto.",
               button: "Buscar Proveedores",
-              link: "Abrir la página completa"
+              link: "Abrir módulo completo"
             }
           : {
               label: "Trouver des Prestataires",
               title: "Trouvez des prestataires italiens avec AI et Vibes Planner.",
-              text: "Ouvrez la recherche desktop : catégorie, zone et service sont lus par l'AI et classés sur les vitrines Vibes.",
+              text: "Ouvrez le module complet : choisissez le premier prestataire, ajoutez des catégories et gardez zone, invités et budget.",
               button: "Trouver des Prestataires",
-              link: "Ouvrir la page complète"
+              link: "Ouvrir le module complet"
             };
   const cookiePreferencesLabel =
     locale === "it" ? "Preferenze cookie" : locale === "en" ? "Cookie preferences" : locale === "es" ? "Preferencias de cookies" : "Préférences cookies";
@@ -73,14 +58,6 @@ export function Footer() {
   const openCookiePreferences = () => {
     window.dispatchEvent(new Event("organizzaevento:open-cookie-preferences"));
   };
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(min-width: 1024px)");
-    const update = () => setShowDesktopSupplierSearch(mediaQuery.matches);
-    update();
-    mediaQuery.addEventListener("change", update);
-    return () => mediaQuery.removeEventListener("change", update);
-  }, []);
 
   return (
     <footer className="border-t border-line bg-petal">
@@ -140,19 +117,20 @@ export function Footer() {
           </Link>
         </nav>
 
-        {showDesktopSupplierSearch ? (
-          <section className="hidden rounded-md border border-line bg-white/80 p-4 shadow-sm lg:block" aria-label={supplierFinderCopy.label}>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">{supplierFinderCopy.label}</p>
-            <h2 className="mt-2 text-lg font-semibold leading-tight text-ink">{supplierFinderCopy.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted">{supplierFinderCopy.text}</p>
-            <DesktopSupplierSearch locale={locale} variant="light" className="mt-4 w-full rounded-md shadow-none">
-              {supplierFinderCopy.button}
-            </DesktopSupplierSearch>
-            <Link className="mt-3 inline-flex text-xs font-semibold text-violet-cta hover:text-violet-hover" href={localizedStaticPath(locale, "findSuppliers")}>
-              {supplierFinderCopy.link}
-            </Link>
-          </section>
-        ) : null}
+        <section className="rounded-md border border-line bg-white/80 p-4 shadow-sm" aria-label={supplierFinderCopy.label}>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">{supplierFinderCopy.label}</p>
+          <h2 className="mt-2 text-lg font-semibold leading-tight text-ink">{supplierFinderCopy.title}</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">{supplierFinderCopy.text}</p>
+          <Link
+            className="focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-hover"
+            href={localizedStaticPath(locale, "findSuppliers")}
+          >
+            {supplierFinderCopy.button}
+          </Link>
+          <Link className="mt-3 inline-flex text-xs font-semibold text-violet-cta hover:text-violet-hover" href={localizedStaticPath(locale, "findSuppliers")}>
+            {supplierFinderCopy.link}
+          </Link>
+        </section>
 
         <div>
           <p className="font-semibold text-ink">{copy.contacts}</p>

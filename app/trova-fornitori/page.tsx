@@ -1,103 +1,176 @@
-﻿import Image from "next/image";
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { VibesSupplierCta } from "@/components/VibesSupplierCta";
-import { SUPPORT_EMAIL, SUPPORT_EMAIL_LINK, VIBES_PLANNER_CLIENT_REQUEST_URL } from "@/lib/constants";
+import { SupplierTaxonomyRequestWizard } from "@/components/SupplierTaxonomyRequestWizard";
+import { SUPPORT_EMAIL, SUPPORT_EMAIL_LINK, VIBES_PLANNER_URL } from "@/lib/constants";
 import { selfAlternates } from "@/lib/i18n-routing";
 
-export const metadata = {
-  title: "Trova fornitori italiani per eventi",
+export const metadata: Metadata = {
+  title: "Trova fornitori per eventi in Italia | OrganizzaEvento",
   description:
-    "Apri il modulo Vibes Planner per cercare fornitori italiani per matrimoni, feste private, compleanni ed eventi aziendali.",
+    "Cerca e prenota fornitori per matrimoni, compleanni, feste private ed eventi aziendali. Aggiungi location, musica, planner, catering e servizi senza perdere il contesto evento.",
   alternates: selfAlternates("it", { type: "static", key: "findSuppliers" })
 };
 
-const steps = [
+const quickBenefits = [
+  "Parti dal fornitore che ti serve davvero",
+  "Zona, invitati e budget restano sempre attivi",
+  "Puoi aggiungere più categorie senza riscrivere tutto",
+  "I fornitori suggeriti arrivano da vetrine Vibes Planner"
+];
+
+const flowSteps = [
   {
-    title: "Racconta l'evento",
-    text: "Tipo evento, città, data indicativa, numero persone e budget se lo hai già in mente."
+    title: "1. Scrivi il brief",
+    text: "Tipo evento, via o zona, invitati, budget e periodo: pochi dati, ma quelli che servono per non perdere tempo."
   },
   {
-    title: "Indica cosa ti serve",
-    text: "Location, catering, musica, foto, allestimenti, bar o altri fornitori utili."
+    title: "2. Scegli da chi partire",
+    text: "Location, musica, planner, catering, foto e video: non sei obbligato a seguire un ordine fisso."
   },
   {
-    title: "Ricevi supporto mirato",
-    text: "Il modulo si apre su Vibes Planner: i tuoi dati non vengono pubblicati nel forum."
+    title: "3. Aggiungi fornitori",
+    text: "Ogni categoria mantiene il brief generale e ti fa scegliere solo i dettagli davvero utili."
+  },
+  {
+    title: "4. Confronta i match",
+    text: "La pagina mostra fornitori consigliati, distanza quando conta e coerenza con la richiesta."
   }
 ];
 
-export default function SupplierRequestPage() {
-  return (
-    <main className="bg-cream">
-      <section className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">Ricerca fornitori</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl xl:text-6xl">
-            Trova fornitori italiani per il tuo evento.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-muted">
-            OrganizzaEvento resta la community dove leggere, chiedere e confrontarti. Per inviare una richiesta privata
-            a fornitori italiani usiamo il modulo Vibes Planner, così il percorso è unico e più ordinato.
-          </p>
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <VibesSupplierCta variant="pink" className="px-6 text-base" logoClassName="h-8 w-8">
-              Apri il modulo fornitori
-            </VibesSupplierCta>
-            <Link
-              href="/fai-domanda"
-              className="focus-ring inline-flex min-h-12 items-center justify-center rounded-xl border border-line bg-white px-6 py-3 text-base font-semibold text-ink transition hover:bg-petal"
-            >
-              Chiedi alla community
-            </Link>
-          </div>
-          <p className="mt-4 text-sm leading-7 text-muted">
-            Hai bisogno di assistenza prima di compilare? Scrivi a{" "}
-            <a className="font-semibold text-ink underline-offset-4 hover:underline" href={SUPPORT_EMAIL_LINK}>
-              {SUPPORT_EMAIL}
-            </a>
-            .
-          </p>
-        </div>
+const faqs = [
+  {
+    question: "Devo registrarmi per cercare fornitori?",
+    answer: "No. Puoi iniziare senza registrazione obbligatoria. L'iscrizione servirà solo per gestire meglio profilo, richieste e storico."
+  },
+  {
+    question: "Posso partire dalla musica invece che dalla location?",
+    answer: "Sì. Il modulo ti fa scegliere il primo fornitore: musica, location, planner, catering, foto e video o un'altra categoria."
+  },
+  {
+    question: "Che ruolo ha Vibes Planner?",
+    answer: "OrganizzaEvento resta una community indipendente. La collaborazione con Vibes Planner serve a leggere categorie e vetrine reali del settore eventi."
+  }
+];
 
-        <a
-          href={VIBES_PLANNER_CLIENT_REQUEST_URL}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
-          className="focus-ring group relative block overflow-hidden rounded-2xl border border-line bg-white p-2 shadow-soft transition hover:-translate-y-0.5"
-          aria-label="Apri il modulo Vibes Planner per cercare fornitori"
-        >
-          <span className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-xl border border-white/70 bg-white/95 px-3 py-2 text-xs font-semibold text-ink shadow-sm">
-            <Image
-              src="/partners/vibes-planner/logo.jpg"
-              alt="Vibes Planner"
-              width={32}
-              height={32}
-              className="h-6 w-6 rounded-md object-cover"
-            />
-            Modulo Vibes
-          </span>
-          <Image
-            src="/partners/vibes-planner/banner-square.jpg"
-            alt="Vibes Planner - richiesta fornitori per eventi"
-            width={790}
-            height={790}
-            priority
-            className="aspect-[4/3] w-full rounded-xl object-cover sm:aspect-square"
-          />
-        </a>
+function SectionEyebrow({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">{children}</p>;
+}
+
+export default function SupplierLandingPage() {
+  return (
+    <main className="bg-[#FFFDF7]">
+      <section className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 lg:px-8">
+        <header className="flex items-center justify-between gap-4 py-3">
+          <Link href="/" className="inline-flex items-center gap-3" aria-label="Torna alla homepage OrganizzaEvento">
+            <Image src="/brand/logo.png" alt="OrganizzaEvento" width={190} height={58} priority className="h-12 w-auto object-contain" />
+          </Link>
+          <a
+            href={VIBES_PLANNER_URL}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="inline-flex items-center gap-2 rounded-md border border-line bg-white px-3 py-2 text-xs font-bold text-ink shadow-sm sm:text-sm"
+          >
+            <Image src="/partners/vibes-planner/logo.jpg" alt="" width={24} height={24} className="h-6 w-6 rounded object-cover" />
+            <span className="hidden sm:inline">In collaborazione con</span>
+            <span>Vibes Planner</span>
+          </a>
+        </header>
+
+        <div className="grid gap-8 py-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-end lg:py-12">
+          <div>
+            <SectionEyebrow>Cerco fornitori</SectionEyebrow>
+            <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+              Trova i fornitori giusti senza ricominciare da zero ogni volta.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-muted sm:text-lg">
+              Un unico brief per cercare location, musica, planner, catering, foto, video e altri servizi. Scegli tu da
+              quale fornitore partire, poi aggiungi gli altri mantenendo zona, invitati e budget.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="#modulo-fornitori"
+                className="focus-ring inline-flex min-h-12 items-center justify-center rounded-md bg-violet-cta px-6 py-3 text-base font-bold text-white shadow-soft transition hover:bg-violet-hover"
+              >
+                Apri il modulo fornitori
+              </a>
+              <Link
+                href="/fai-domanda"
+                className="focus-ring inline-flex min-h-12 items-center justify-center rounded-md border border-line bg-white px-6 py-3 text-base font-bold text-ink transition hover:bg-petal"
+              >
+                Chiedi alla community
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {quickBenefits.map((item) => (
+                <div key={item} className="rounded-md border border-line bg-cream p-4">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-violet-cta text-sm font-bold text-white">✓</span>
+                  <p className="mt-3 text-sm font-bold leading-6 text-ink">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-12">
-        <div className="grid gap-4 md:grid-cols-3">
-          {steps.map((step, index) => (
-            <article key={step.title} className="rounded-2xl border border-line bg-white p-5 shadow-sm">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-petal text-sm font-semibold text-violet-cta">
-                {index + 1}
-              </span>
-              <h2 className="mt-5 text-xl font-semibold text-ink">{step.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">{step.text}</p>
+      <section className="border-y border-line bg-white">
+        <div className="mx-auto grid max-w-7xl gap-3 px-4 py-5 sm:px-6 md:grid-cols-4 lg:px-8">
+          {flowSteps.map((step) => (
+            <article key={step.title} className="rounded-md border border-line bg-[#FFFDF7] p-4">
+              <h2 className="text-base font-semibold text-ink">{step.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">{step.text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section id="modulo-fornitori" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-7 grid gap-4 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+          <div>
+            <SectionEyebrow>Modulo completo</SectionEyebrow>
+            <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+              Prenota più fornitori partendo da un brief unico.
+            </h2>
+          </div>
+          <p className="text-base leading-8 text-muted">
+            Questo è il modulo completo: numero invitati, via o zona evento, budget e periodo restano attivi per tutte
+            le ricerche. La parte musicale apre campi dedicati per formazione, musicista e genere.
+          </p>
+        </div>
+        <SupplierTaxonomyRequestWizard />
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="rounded-md border border-line bg-white p-6 shadow-sm sm:p-8">
+          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
+            <div>
+              <SectionEyebrow>FAQ</SectionEyebrow>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Domande frequenti.</h2>
+              <p className="mt-4 text-sm leading-7 text-muted">
+                Hai bisogno di assistenza? Scrivi a{" "}
+                <a className="font-semibold text-ink underline-offset-4 hover:underline" href={SUPPORT_EMAIL_LINK}>
+                  {SUPPORT_EMAIL}
+                </a>
+                .
+              </p>
+            </div>
+            <div className="grid gap-3">
+              {faqs.map((item) => (
+                <details key={item.question} className="group rounded-md border border-line bg-cream p-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-ink">
+                    {item.question}
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-petal text-violet-cta transition group-open:rotate-45">
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-7 text-muted">{item.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
     </main>

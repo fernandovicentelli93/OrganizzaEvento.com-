@@ -1,0 +1,52 @@
+{
+  "name": "organizzaevento",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.24.0",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "build:netlify-db": "node scripts/netlify-build.mjs",
+    "build:local": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "db:enrich": "tsx scripts/enrich-community.ts",
+    "seo:export": "tsx scripts/export-local-seo.ts",
+    "test:redaction": "tsx scripts/test-redaction-engine.ts",
+    "test:quote-product": "tsx scripts/test-quote-product.ts",
+    "test:quote-scoring": "tsx scripts/test-quote-scoring.ts"
+  },
+  "dependencies": {
+    "@netlify/database": "^1.0.0",
+    "@prisma/client": "6.19.3",
+    "@swc/helpers": "0.5.15",
+    "next": "15.5.19",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "styled-jsx": "5.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "autoprefixer": "10.4.23",
+    "eslint": "9.39.1",
+    "eslint-config-next": "15.5.19",
+    "@netlify/plugin-nextjs": "5.15.11",
+    "postcss": "8.5.6",
+    "prisma": "6.19.3",
+    "tailwindcss": "3.4.18",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  },
+  "prisma": {
+    "seed": "node ./node_modules/tsx/dist/cli.mjs prisma/seed.ts"
+  }
+}

@@ -1,0 +1,138 @@
+Cookie Policy
+Informativa su cookie, tecnologie simili, consenso, preferenze, analytics e strumenti di
+terze parti.
+Versione 1.0 - Ultimo aggiornamento: 15 giugno 2026
+Sito di riferimento: https://organizzaevento.com
+Contatto operativo: supportoforumevento@gmail.com
+
+Cookie Policy
+Indice operativo
+1. Cosa sono cookie e tecnologie simili
+2. Principio di default e consenso
+3. Categorie di cookie utilizzate
+4. Elenco operativo dei cookie
+5. Gestione delle preferenze
+6. Terze parti
+7. Cookie tecnici e funzionalità essenziali
+8. Analytics
+9. Marketing, profilazione e campagne
+10. Conservazione della prova del consenso
+11. Contatti e aggiornamenti
+
+Cookie Policy
+1. Cosa sono cookie e tecnologie simili
+I cookie sono piccoli file o identificatori che un sito può memorizzare nel dispositivo dell'utente o leggere durante la
+navigazione. Tecnologie simili possono includere pixel, local storage, identificatori di sessione, SDK, tag o strumenti di
+misurazione.
+OrganizzaEvento.com usa cookie e tecnologie simili per far funzionare il Sito, mantenere sicura la navigazione,
+ricordare preferenze, prevenire spam, misurare l'uso del servizio e, solo ove attivati e consentiti, abilitare funzioni
+ulteriori di analytics, personalizzazione o marketing.
+2. Principio di default e consenso
+Al primo accesso devono essere attivi solo cookie tecnici o strumenti strettamente necessari al funzionamento del Sito e
+alla sicurezza. Cookie analytics non anonimizzati, cookie di profilazione, marketing o strumenti di terze parti non
+necessari sono attivati solo dopo consenso valido dell'utente, quando richiesto dalla legge.
+Il banner o pannello di gestione deve permettere di accettare, rifiutare o personalizzare le scelte in modo chiaro,
+granulare e accessibile. Il consenso può essere revocato o modificato tramite il link o comando di gestione preferenze
+disponibile sul Sito.
+La prosecuzione della navigazione, lo scroll o l'inerzia non sono trattati come consenso ai cookie non tecnici.
+3. Categorie di cookie utilizzate
+Categoria
+Finalità
+Consenso
+Durata indicativa
+Cookie tecnici di sessione
+navigazione, sicurezza, autenticazione,
+protezione form, mantenimento sessione,
+prevenzione errori
+non richiesto
+sessione o breve
+periodo tecnico
+Cookie preferenze e
+consenso
+memorizzare lingua, preferenze essenziali e
+scelte cookie
+non richiesto se strettamente
+necessario
+fino a 6-13 mesi
+Anti-spam e captcha
+proteggere form, community e account da bot,
+invii massivi e abusi
+non richiesto quando
+strettamente necessario alla
+sicurezza; richiesto se usato per
+finalità ulteriori
+variabile secondo
+tecnologia
+Analytics aggregati
+misurare traffico, pagine visitate, contenuti più
+letti, errori e performance
+non richiesto solo se realmente
+anonimizzati e minimizzati;
+altrimenti richiesto
+in via ordinaria fino a
+14 mesi
+Contenuti di terze parti
+caricamento di mappe, video, widget, social,
+immagini, font o strumenti esterni
+richiesto quando comportano
+tracciamento non necessario
+secondo terza parte
+Marketing o profilazione
+annunci, remarketing, misurazione campagne,
+personalizzazione pubblicitaria
+richiesto
+secondo strumento e
+scelta utente
+4. Elenco operativo dei cookie
+L'elenco aggiornato dei cookie e degli strumenti effettivamente attivi deve essere mostrato nel pannello preferenze del
+Sito, con indicazione di nome, fornitore, finalità, categoria e durata.
+A titolo di struttura operativa, il Sito può includere: cookie di sessione per autenticazione e sicurezza; cookie di
+consenso per ricordare le preferenze; cookie tecnici per form e protezione CSRF; strumenti anti-spam o captcha;
+strumenti analytics aggregati; eventuali strumenti terzi caricati solo dopo consenso quando necessario.
+Il Gestore deve mantenere il pannello cookie coerente con gli script effettivamente presenti nelle pagine, inclusi
+strumenti installati tramite plugin, tag manager, widget supporto, analytics, video, mappe, CDN, font, social o servizi di
+sicurezza.
+
+Cookie Policy
+5. Gestione delle preferenze
+L'utente può modificare in qualunque momento le preferenze tramite il comando di gestione cookie presente nel footer o
+nel pannello impostazioni del Sito.
+La revoca del consenso non pregiudica la liceità dei trattamenti effettuati prima della revoca. Dopo la revoca, i cookie
+non tecnici non saranno più impostati dal Sito, salvo che l'utente li mantenga volontariamente nel browser o acceda a
+funzionalità di terze parti.
+L'utente può anche eliminare o bloccare cookie attraverso le impostazioni del browser. Il blocco dei cookie tecnici può
+compromettere login, form, preferenze, sicurezza o alcune funzioni della community.
+6. Terze parti
+Alcune funzioni possono dipendere da fornitori esterni, come hosting, sicurezza, captcha, analytics, email, widget
+supporto, mappe, video o social. Quando tali servizi installano cookie o leggono identificatori non necessari, devono
+essere caricati solo secondo le scelte dell'utente.
+Le terze parti possono agire come responsabili del trattamento, autonomi titolari o contitolari a seconda del servizio. Le
+rispettive informative e impostazioni privacy restano applicabili ai trattamenti svolti fuori dal controllo diretto del Gestore.
+7. Cookie tecnici e funzionalità essenziali
+I cookie tecnici sono necessari per navigare, usare form, mantenere la sessione, proteggere account, ricordare
+preferenze essenziali, prevenire spam e fornire funzionalità richieste dall'utente.
+Questi cookie non richiedono consenso preventivo, ma devono essere descritti in modo chiaro nella presente Cookie
+Policy o nel pannello preferenze.
+8. Analytics
+Gli strumenti analytics sono usati per capire quali pagine funzionano, individuare problemi tecnici, migliorare guide,
+community e funzionalità del Sito.
+Gli analytics possono essere trattati come tecnici solo quando rispettano condizioni di minimizzazione, aggregazione,
+limitazione del tracciamento e assenza di combinazione con altri dati idonei a identificare l'utente. In caso contrario sono
+attivati solo previo consenso.
+9. Marketing, profilazione e campagne
+Cookie o strumenti di marketing, profilazione, remarketing o pubblicità personalizzata sono installati solo se l'utente ha
+prestato consenso specifico.
+In assenza di consenso, il Sito non deve usare strumenti pubblicitari per tracciare l'utente a fini di annunci personalizzati
+o misurazione non strettamente necessaria.
+10. Conservazione della prova del consenso
+Le scelte dell'utente possono essere registrate mediante un cookie tecnico o altro identificatore di preferenza, per
+evitare la riproposizione continua del banner e documentare consenso, rifiuto o personalizzazione.
+La memorizzazione delle preferenze deve durare il tempo necessario e, in via ordinaria, non dovrebbe essere inferiore
+a 6 mesi per evitare richieste ripetitive non necessarie, salvo modifiche rilevanti al trattamento o agli strumenti usati.
+11. Contatti e aggiornamenti
+
+Cookie Policy
+Per domande sulla Cookie Policy o per segnalare incongruenze tra banner, pannello preferenze e strumenti
+effettivamente caricati, è possibile scrivere a supportoforumevento@gmail.com.
+La Cookie Policy può essere aggiornata in seguito a modifiche tecniche, introduzione o rimozione di strumenti,
+aggiornamenti normativi o cambiamenti delle finalità di trattamento.

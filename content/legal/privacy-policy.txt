@@ -1,0 +1,225 @@
+Privacy Policy
+Informativa sul trattamento dei dati personali degli utenti del Sito, della community, dei
+form, degli account e degli strumenti di analisi preventivi.
+Versione 1.0 - Ultimo aggiornamento: 15 giugno 2026
+Sito di riferimento: https://organizzaevento.com
+Contatto operativo: supportoforumevento@gmail.com
+
+Privacy Policy
+Indice operativo
+1. Titolare, ambito e contatti
+2. Categorie di dati trattati
+3. Dati da non inviare o pubblicare
+4. Finalità e basi giuridiche
+5. Contenuti pubblici, anonimato e indicizzazione
+6. Strumenti automatizzati e analisi assistita
+7. Destinatari e soggetti che possono trattare dati
+8. Trasferimenti fuori dallo Spazio Economico Europeo
+9. Conservazione dei dati
+10. Diritti dell'interessato
+11. Reclamo all'Autorità di controllo
+12. Sicurezza
+13. Aggiornamenti
+
+Privacy Policy
+1. Titolare, ambito e contatti
+La presente Informativa descrive come vengono trattati i dati personali degli utenti che navigano su
+OrganizzaEvento.com, leggono o pubblicano contenuti, usano form, caricano preventivi, creano account, interagiscono
+con la community, inviano richieste fornitori o contattano il supporto.
+Il Titolare del trattamento è il Gestore di OrganizzaEvento.com, cioè il soggetto che determina finalità e mezzi del
+trattamento tramite il Sito ed è indicato negli spazi legali e nei canali ufficiali del Sito.
+Per richieste privacy, esercizio dei diritti, rettifiche, cancellazioni o segnalazioni è possibile scrivere a
+supportoforumevento@gmail.com.
+La presente Informativa si applica al Sito e non disciplina siti, piattaforme, strumenti o fornitori esterni eventualmente
+raggiungibili tramite link.
+2. Categorie di dati trattati
+Categoria
+Esempi
+Origine
+Dati di navigazione e
+sicurezza
+indirizzo IP, log tecnici, dispositivo, browser, pagine visitate,
+data e ora, errori, dati anti-spam, captcha, cookie tecnici
+raccolti automaticamente durante la
+navigazione
+Dati account
+email, password cifrata, ruolo scelto, nickname o nome
+pubblico, foto profilo opzionale, bio, città, regione, preferenze
+dashboard
+forniti dall'utente in fase di registrazione o uso
+account
+Contenuti community
+domande, risposte, categorie, tipo evento, città, regione,
+numero ospiti, budget, testi, immagini, stato discussione,
+interazioni
+pubblicati o trasmessi dall'utente
+Preventivi e materiali
+caricati
+file, immagini, PDF, testi, voci di costo, importi, data evento,
+durata, servizio richiesto, dettagli inclusi o mancanti
+caricati o incollati dall'utente nello strumento
+di analisi
+Richieste fornitori
+brief evento, zona, periodo, budget, servizio cercato,
+preferenze, recapito indicato, consenso alla condivisione
+inviati volontariamente tramite form o
+dashboard
+Dati fornitori
+scheda professionale, categoria, zone coperte, portfolio,
+fascia indicativa, risposte, badge, reputazione, dashboard
+forniti dal professionista o generati dall'uso
+del Sito
+Comunicazioni e
+assistenza
+email, richieste inviate, messaggi supporto, proposte
+collaborazione, segnalazioni, reclami
+forniti dall'utente o generati nella gestione
+della richiesta
+Dati analytics e cookie
+identificatori tecnici, preferenze cookie, statistiche aggregate
+o dati di misurazione secondo consenso
+raccolti tramite cookie o tecnologie simili
+secondo Cookie Policy
+3. Dati da non inviare o pubblicare
+L'Utente non deve pubblicare o caricare dati non necessari, dati personali di terzi, documenti di identità, recapiti privati,
+indirizzi, firme, coordinate bancarie, dati sanitari, dati giudiziari, immagini di minori, targhe, accuse identificative o
+informazioni che possano esporre persone e imprese a rischi ingiustificati.
+Quando carica un preventivo, l'Utente deve rimuovere o oscurare riferimenti identificativi del fornitore e di terzi prima di
+trasformare il contenuto in una discussione pubblica. Gli strumenti automatici di oscuramento aiutano ma non
+sostituiscono il controllo umano dell'Utente.
+4. Finalità e basi giuridiche
+Finalità
+Base giuridica
+Descrizione
+Fornire il Sito e le funzionalità
+richieste
+esecuzione di misure contrattuali o
+precontrattuali
+navigazione, account, pubblicazione contenuti, dashboard,
+analisi preventivi, richieste inviate volontariamente
+Gestire community e
+moderazione
+legittimo interesse e adempimento di
+obblighi di legge
+prevenzione abusi, rimozione contenuti illeciti, gestione
+segnalazioni, tutela di utenti, fornitori e Sito
+
+Privacy Policy
+Finalità
+Base giuridica
+Descrizione
+Analizzare preventivi
+richiesta dell'utente e misure
+precontrattuali; consenso quando
+richiesto per trattamenti ulteriori
+lettura strutturata di file o testi, oscuramento, generazione di
+analisi e possibili domande pubbliche
+Inviare notifiche e assistenza
+esecuzione del servizio o consenso
+ove necessario
+avvisi sulle risposte, gestione account, supporto, recupero
+credenziali, aggiornamenti funzionali
+Condividere richieste con
+fornitori compatibili
+consenso dell'utente o misure
+precontrattuali richieste dall'utente
+trasmissione del brief e dei dati necessari solo quando l'utente
+attiva la richiesta
+Sicurezza e anti-spam
+legittimo interesse e obblighi di
+sicurezza
+captcha, limiti invio, log, filtri, blocco abusi, prevenzione frodi e
+malware
+Analytics e miglioramento
+consenso, oppure legittimo interesse
+per statistiche tecniche aggregate
+non invasive
+misurazione traffico, contenuti più letti, performance e
+miglioramento del Sito
+Tutela legale
+legittimo interesse e obblighi di legge
+conservazione di elementi necessari a gestire reclami,
+contestazioni, richieste autorità o difesa di diritti
+5. Contenuti pubblici, anonimato e indicizzazione
+Le domande, risposte, guide e contenuti pubblici possono essere visibili ad altri utenti e indicizzati da motori di ricerca o
+strumenti di ricerca. L'Utente deve quindi evitare di inserire informazioni che non desidera rendere pubbliche.
+Se l'Utente sceglie la modalità anonima o un nickname, il Sito può non mostrare pubblicamente il nome reale. Tuttavia,
+dati tecnici o informazioni interne possono essere trattati dal Gestore per sicurezza, moderazione, gestione account e
+obblighi di legge.
+La cancellazione di un account può comportare disattivazione del profilo. Le conversazioni già pubblicate possono
+restare visibili in forma priva di dati personali riconoscibili, quando ciò è necessario per preservare coerenza della
+community, libertà di espressione, interesse informativo o tutela da abusi.
+6. Strumenti automatizzati e analisi assistita
+Il Sito può utilizzare strumenti automatici o assistiti per leggere file, individuare dati da oscurare, classificare contenuti,
+suggerire domande, prevenire spam, segnalare parole vietate o supportare la moderazione.
+Tali strumenti non assumono decisioni con effetti giuridici significativi in modo esclusivamente automatizzato. Le analisi
+prodotte sono informative e devono essere verificate dall'Utente prima di essere usate per decisioni economiche o
+contrattuali.
+Le decisioni di moderazione più rilevanti possono essere riesaminate secondo le procedure indicate nelle Condizioni
+generali o negli strumenti del Sito, quando tecnicamente e giuridicamente possibile.
+7. Destinatari e soggetti che possono trattare dati
+I dati possono essere trattati da personale autorizzato, collaboratori, consulenti, moderatori, fornitori tecnici e soggetti
+che supportano hosting, sicurezza, manutenzione, email, notifiche, analytics, anti-spam, captcha, supporto, gestione
+documentale o assistenza legale e fiscale.
+I dati relativi a richieste fornitori possono essere condivisi con professionisti compatibili solo quando l'Utente attiva
+volontariamente la richiesta e nei limiti necessari alla gestione del contatto.
+I dati possono essere comunicati ad autorità, forze dell'ordine, soggetti pubblici o terzi quando ciò sia richiesto dalla
+legge, da un ordine legittimo, dalla tutela di diritti, dalla prevenzione di illeciti o dalla sicurezza delle persone.
+Il Gestore non vende i dati personali degli utenti.
+8. Trasferimenti fuori dallo Spazio Economico Europeo
+
+Privacy Policy
+Alcuni fornitori tecnici possono trattare dati in Paesi esterni allo Spazio Economico Europeo. In tali casi il trasferimento
+avviene solo quando esiste una base giuridica adeguata, come decisioni di adeguatezza della Commissione europea,
+clausole contrattuali standard, misure supplementari o altre garanzie previste dalla normativa applicabile.
+L'elenco dei fornitori e delle tecnologie effettivamente attive può variare in base agli strumenti implementati sul Sito e
+deve essere mantenuto coerente con Cookie Policy, banner cookie e accordi con responsabili del trattamento.
+9. Conservazione dei dati
+Dati
+Periodo ordinario di conservazione
+Account e profilo
+per la durata dell'account e, dopo disattivazione, per il tempo necessario a gestire
+sicurezza, reclami o obblighi di legge
+Contenuti pubblici
+finché restano utili alla community o fino a rimozione, anonimizzazione o limitazione
+secondo legge e regole del Sito
+File e testi di preventivo
+per il tempo necessario all'analisi e alla gestione della funzione; i file originali non
+destinati alla pubblicazione sono conservati per un periodo limitato e comunque non
+oltre 30 giorni, salvo esigenze di sicurezza, abuso, reclamo o obbligo legale
+Richieste fornitori e brief
+per il tempo necessario alla gestione della richiesta e, in via ordinaria, non oltre 24
+mesi salvo rapporto attivo, reclami o obblighi di legge
+Log tecnici e sicurezza
+in via ordinaria fino a 12 mesi, salvo necessità di accertamento abusi, frodi, sicurezza
+o richieste autorità
+Comunicazioni supporto e segnalazioni
+per il tempo necessario alla gestione della richiesta e alla tutela del Gestore e degli
+utenti
+Cookie e consensi
+secondo le durate indicate nella Cookie Policy e nel pannello preferenze
+10. Diritti dell'interessato
+L'interessato può chiedere, nei casi previsti dalla normativa, accesso ai dati, rettifica, cancellazione, limitazione,
+opposizione, portabilità, revoca del consenso e informazioni sui trattamenti effettuati.
+Le richieste possono essere inviate a supportoforumevento@gmail.com. Il Gestore può richiedere informazioni
+necessarie a verificare l'identità del richiedente e a individuare i dati interessati.
+La revoca del consenso non pregiudica la liceità del trattamento svolto prima della revoca. Alcuni dati possono essere
+conservati quando ciò sia necessario per obblighi di legge, accertamento o difesa di diritti, sicurezza, prevenzione abusi
+o conservazione di contenuti pubblici già anonimizzati.
+11. Reclamo all'Autorità di controllo
+L'interessato che ritenga violati i propri diritti può proporre reclamo al Garante per la protezione dei dati personali o
+all'Autorità di controllo competente nel luogo di residenza, lavoro o presunta violazione.
+Prima di proporre reclamo, è consigliato contattare il Gestore per consentire una verifica rapida e, quando possibile, una
+soluzione diretta.
+12. Sicurezza
+Il Gestore adotta misure tecniche e organizzative ragionevoli per proteggere dati, account, contenuti, file e
+comunicazioni da accessi non autorizzati, perdita, alterazione, divulgazione o uso improprio.
+Nessun sistema online può essere considerato privo di rischio. L'Utente deve usare password robuste, non riutilizzare
+credenziali, non caricare dati non necessari e segnalare tempestivamente accessi sospetti o contenuti problematici.
+13. Aggiornamenti
+
+Privacy Policy
+La presente Informativa può essere aggiornata per modifiche normative, tecniche, organizzative o funzionali. La
+versione aggiornata è pubblicata sul Sito con indicazione della data di aggiornamento.
+Per trattamenti nuovi o significativamente diversi, il Gestore può fornire ulteriori informazioni o richiedere consensi
+specifici quando necessario.

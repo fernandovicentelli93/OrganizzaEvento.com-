@@ -1,0 +1,719 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DisplayMode {
+  anonymous
+  nickname
+  real_name
+}
+
+enum Status {
+  published
+  hidden
+  pending
+}
+
+enum TargetType {
+  question
+  answer
+}
+
+enum VoteType {
+  useful
+  not_useful
+}
+
+enum ReportStatus {
+  open
+  reviewed
+  dismissed
+}
+
+enum SupplierRequestStatus {
+  new_request
+  contacted
+  closed
+  archived
+}
+
+enum SupportRequestStatus {
+  new_request
+  handled
+  archived
+}
+
+enum ArticleStatus {
+  draft
+  scheduled
+  published
+}
+
+enum AccountRole {
+  client
+  supplier
+}
+
+enum AccountStatus {
+  active
+  suspended
+  deleted
+}
+
+enum QuoteSeoPageType {
+  hub
+  service
+  region
+  city
+}
+
+enum QuoteGeographyLevel {
+  city
+  province
+  region
+  italy
+}
+
+enum QuoteBenchmarkSource {
+  vibes_internal
+  manual_review
+  public_source
+}
+
+enum QuoteAnalysisStatus {
+  draft
+  analyzed
+  published
+  supplier_requested
+  deleted
+}
+
+enum QuoteOpportunityType {
+  public_advice
+  private_comparison
+}
+
+enum QuoteOpportunityStatus {
+  new_opportunity
+  visible
+  answered
+  closed
+  archived
+}
+
+enum SupplierAnswerType {
+  public_advice
+  private_reply
+}
+
+enum SupplierModerationStatus {
+  pending
+  approved
+  blocked
+  hidden
+}
+
+enum SupplierVerificationStatus {
+  unverified
+  pending
+  verified
+}
+
+enum SupplierBadgeLevel {
+  bronze
+  silver
+  gold
+  platinum
+  diamond
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+}
+
+model Question {
+  id             String      @id @default(cuid())
+  title          String
+  slug           String      @unique
+  content        String
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id])
+  postType       String
+  eventPhase     String?
+  eventType      String?
+  city           String?
+  region         String?
+  peopleCount    Int?
+  budgetRange    String?
+  eventDate      DateTime?
+  displayMode    DisplayMode
+  displayName    String?
+  privateEmail   String?
+  accountId      String?
+  account        UserAccount? @relation("AccountQuestions", fields: [accountId], references: [id], onDelete: SetNull)
+  proposedImageUrl String?
+  proposedImageStatus Status?
+  usefulVotes    Int         @default(0)
+  notUsefulVotes Int         @default(0)
+  answersCount   Int         @default(0)
+  status         Status      @default(published)
+  answers        Answer[]
+  subscriptions  ConversationSubscription[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([categoryId])
+  @@index([postType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([accountId])
+}
+
+model ConversationSubscription {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  email      String
+  createdAt  DateTime @default(now())
+
+  @@unique([questionId, email])
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Answer {
+  id             String      @id @default(cuid())
+  questionId     String
+  question       Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  content        String
+  displayMode    DisplayMode
+  displayName    String?
+  privateEmail   String?
+  accountId      String?
+  account        UserAccount? @relation("AccountAnswers", fields: [accountId], references: [id], onDelete: SetNull)
+  usefulVotes    Int         @default(0)
+  notUsefulVotes Int         @default(0)
+  isBestAnswer   Boolean     @default(false)
+  status         Status      @default(published)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([questionId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([accountId])
+}
+
+model UserAccount {
+  id              String        @id @default(cuid())
+  role            AccountRole
+  status          AccountStatus @default(active)
+  email           String        @unique
+  passwordHash    String
+  authProvider    String        @default("email")
+  displayName     String
+  profileTag      String?
+  photoUrl        String?
+  bio             String?
+  city            String?
+  region          String?
+  businessName    String?
+  supplierCategory String?
+  supplierServices String?
+  eventTypesServed String?
+  serviceAreas    String?
+  priceRange      String?
+  minimumBudget   String?
+  travelRange     String?
+  portfolioUrl    String?
+  websiteUrl      String?
+  instagramUrl    String?
+  availabilityNotes String?
+  experienceYears Int?
+  profileCompletedAt DateTime?
+  activityPoints  Int           @default(0)
+  lastLoginAt     DateTime?
+  lastSeenAt      DateTime?
+  questions       Question[]    @relation("AccountQuestions")
+  answers         Answer[]      @relation("AccountAnswers")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([role])
+  @@index([status])
+  @@index([activityPoints])
+  @@index([lastSeenAt])
+}
+
+model SiteVisit {
+  id          String   @id @default(cuid())
+  visitorHash String
+  sessionHash String
+  accountId   String?
+  path        String
+  locale      String?
+  referrer    String?
+  userAgentHash String?
+  ipHash      String?
+  isBot       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([visitorHash])
+  @@index([sessionHash])
+  @@index([accountId])
+  @@index([path])
+  @@index([createdAt])
+}
+
+model CommunityActivity {
+  id           String   @id @default(cuid())
+  kind         String
+  questionId   String?
+  answerId     String?
+  accountId    String?
+  visitorHash  String?
+  displayMode  String?
+  displayName  String?
+  source       String   @default("public_form")
+  createdAt    DateTime @default(now())
+
+  @@index([kind])
+  @@index([source])
+  @@index([accountId])
+  @@index([visitorHash])
+  @@index([createdAt])
+}
+
+model Vote {
+  id         String     @id @default(cuid())
+  targetType TargetType
+  targetId   String
+  voteType   VoteType
+  voterHash  String
+  createdAt  DateTime   @default(now())
+
+  @@unique([targetType, targetId, voterHash])
+  @@index([targetType, targetId])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  targetType TargetType
+  targetId   String
+  reason     String
+  details    String?
+  createdAt  DateTime     @default(now())
+  status     ReportStatus @default(open)
+
+  @@index([targetType, targetId])
+  @@index([status])
+}
+
+model SupplierRequest {
+  id            String                @id @default(cuid())
+  eventType     String
+  city          String?
+  region        String?
+  eventDate     DateTime?
+  peopleCount   Int?
+  budgetRange   String?
+  supplierTypes String
+  message       String
+  name          String?
+  email         String?
+  phone         String?
+  status        SupplierRequestStatus @default(new_request)
+  internalNotes String?
+  aiReply       String?
+  aiReplyCreatedAt DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SupportRequest {
+  id         String               @id @default(cuid())
+  name       String?
+  email      String
+  message    String
+  sourcePath String?
+  status     SupportRequestStatus @default(new_request)
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EditorialArticle {
+  id              String        @id @default(cuid())
+  title           String
+  slug            String        @unique
+  kicker          String
+  excerpt         String
+  category        String
+  tags            String
+  heroImage       String
+  heroAlt         String
+  authorName      String
+  readingMinutes  Int
+  metaTitle       String
+  metaDescription String
+  aiSummary       String
+  keyTakeaways    String
+  content         String
+  faqJson         String
+  status          ArticleStatus @default(published)
+  publishedAt     DateTime
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([category])
+}
+
+model QuoteAnalysisService {
+  id                       String   @id @default(cuid())
+  slug                     String   @unique
+  nameSingular             String
+  namePlural               String
+  quoteCheckFields         String
+  commonHiddenCosts        String
+  requiredQuoteItems       String
+  serviceSpecificQuestions String
+  benchmarkLogic           String
+  schemaType               String
+  active                   Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  cityPriorityScores QuoteCityPriorityScore[]
+  quoteBenchmarks    QuoteBenchmark[]
+  seoPages           QuoteSeoPage[]
+}
+
+model ItalianMunicipality {
+  istatCode                       String   @id
+  comuneName                      String
+  comuneSlug                      String
+  provinciaSigla                  String
+  provinciaNome                   String
+  provinciaCode                   String
+  regioneNome                     String
+  regioneSlug                     String
+  isCapoluogo                     Boolean  @default(false)
+  isMetropolitanCityCapital       Boolean?
+  isLiberoConsorzioCapital        Boolean?
+  population                      Int?
+  latitude                        Float?
+  longitude                       Float?
+  active                          Boolean  @default(true)
+  sourceUpdatedAt                 DateTime
+  importedAt                      DateTime @default(now())
+
+  cityPriorityScores QuoteCityPriorityScore[]
+  seoPages           QuoteSeoPage[]
+
+  @@index([isCapoluogo])
+  @@index([regioneSlug])
+  @@index([provinciaSigla])
+}
+
+model QuoteProvinceProfile {
+  provinciaSigla                 String   @id
+  provinciaNome                  String
+  regioneSlug                    String
+  eventMarketNotes               String?
+  logisticRisks                  String?
+  supplierCoveragePatterns       String?
+  averageEventBudgetProxy        String?
+  seasonalityNotes               String?
+  premiumAreaScore               Int?
+  updatedAt                      DateTime @updatedAt
+
+  @@index([regioneSlug])
+}
+
+model QuoteRegionProfile {
+  regioneSlug                    String   @id
+  regioneNome                    String
+  toneAngle                      String?
+  eventContexts                  String?
+  logisticRisks                  String?
+  seasonalNotes                  String?
+  commonSupplierCoveragePatterns String?
+  introVariants                  String?
+  faqVariants                    String?
+  internalLinkingRules           String?
+  updatedAt                      DateTime @updatedAt
+}
+
+model QuoteCityPriorityScore {
+  id                       String   @id @default(cuid())
+  istatCode                String
+  municipality             ItalianMunicipality @relation(fields: [istatCode], references: [istatCode], onDelete: Cascade)
+  serviceId                String?
+  service                  QuoteAnalysisService? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  populationScore          Float?
+  incomeScore              Float?
+  supplierScore            Float?
+  searchDemandScore        Float?
+  internalConversionScore  Float?
+  eventBudgetScore         Float?
+  finalPriorityScore       Float
+  priorityTier             String
+  reason                   String
+  calculatedAt             DateTime @default(now())
+
+  @@unique([istatCode, serviceId])
+  @@index([priorityTier])
+  @@index([finalPriorityScore])
+}
+
+model QuoteBenchmark {
+  id              String              @id @default(cuid())
+  serviceId       String
+  service         QuoteAnalysisService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  geographyLevel  QuoteGeographyLevel
+  geographyId     String
+  minPrice        Int?
+  medianPrice     Int?
+  maxPrice        Int?
+  sampleSize      Int                 @default(0)
+  updatedAt       DateTime            @updatedAt
+  source          QuoteBenchmarkSource
+  confidenceScore Int
+
+  @@index([serviceId, geographyLevel, geographyId])
+}
+
+model QuoteSeoPage {
+  id                    String           @id @default(cuid())
+  url                   String           @unique
+  pageType              QuoteSeoPageType
+  serviceId             String?
+  service               QuoteAnalysisService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  istatCode             String?
+  municipality          ItalianMunicipality? @relation(fields: [istatCode], references: [istatCode], onDelete: SetNull)
+  regioneSlug           String?
+  title                 String
+  metaDescription       String
+  h1                    String
+  canonical             String
+  robots                String
+  indexable             Boolean
+  qualityScore          Int
+  priorityTier          String
+  finalPriorityScore    Float
+  contentFingerprint    String
+  lastSignificantUpdate DateTime
+  statusCodeExpected    Int             @default(200)
+
+  sitemapEntries QuoteSitemapEntry[]
+
+  @@index([pageType])
+  @@index([indexable])
+  @@index([priorityTier])
+  @@index([serviceId])
+  @@index([istatCode])
+  @@index([regioneSlug])
+}
+
+model QuoteSitemapEntry {
+  id                   String       @id @default(cuid())
+  url                  String
+  seoPage              QuoteSeoPage @relation(fields: [url], references: [url], onDelete: Cascade)
+  sitemapGroup         String
+  lastmod              DateTime
+  indexable            Boolean
+  canonicalSelf        Boolean
+  statusCode           Int
+  noindex              Boolean
+  priorityTier         String
+  finalPriorityScore   Float
+  includedInSitemap    Boolean
+  includedAt           DateTime?
+
+  @@unique([url, sitemapGroup])
+  @@index([sitemapGroup])
+  @@index([includedInSitemap])
+}
+
+model QuoteAnalysisRequest {
+  id                      String              @id @default(cuid())
+  userId                  String?
+  sessionId               String
+  serviceType             String
+  eventType               String
+  city                    String?
+  province                String?
+  region                  String?
+  eventDate               DateTime?
+  guestsCount             Int?
+  totalAmount             Int?
+  rawTextPrivate          String
+  redactedText            String
+  uploadedFileId          String?
+  privacyConsentAt        DateTime
+  publishConsentAt        DateTime?
+  supplierShareConsentAt  DateTime?
+  status                  QuoteAnalysisStatus @default(analyzed)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  reports                 QuoteAnalysisReport[]
+  publicDiscussions       QuotePublicDiscussion[]
+  supplierOpportunities   QuoteSupplierOpportunity[]
+
+  @@index([serviceType])
+  @@index([eventType])
+  @@index([city, province])
+  @@index([status])
+  @@index([createdAt])
+  @@map("quote_analysis_requests")
+}
+
+model QuoteAnalysisReport {
+  id                        String               @id @default(cuid())
+  requestId                 String
+  request                   QuoteAnalysisRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  detectedService           String
+  extractedTotalPrice       Int?
+  extractedLineItems        Json
+  includedItems             Json
+  missingItems              Json
+  unclearItems              Json
+  possibleHiddenCosts       Json
+  questionsToAsk            Json
+  supplierMessageDraft      String
+  userSummary               String
+  publicAnonymizedSummary   String
+  scoreChiarezza            Int
+  scoreCompletezza          Int
+  scoreRischioExtra         String
+  scoreCoerenzaPrezzo       String
+  verdict                   String
+  benchmarkUsed             Json?
+  benchmarkConfidence       String?
+  recommendedNextAction     String
+  createdAt                 DateTime             @default(now())
+
+  @@index([requestId])
+  @@index([createdAt])
+  @@map("quote_analysis_reports")
+}
+
+model QuotePublicDiscussion {
+  id                  String               @id @default(cuid())
+  quoteAnalysisId     String
+  quoteAnalysis       QuoteAnalysisRequest @relation(fields: [quoteAnalysisId], references: [id], onDelete: Cascade)
+  discussionId        String
+  anonymizedTitle     String
+  anonymizedBody      String
+  status              Status               @default(pending)
+  createdAt           DateTime             @default(now())
+
+  @@index([quoteAnalysisId])
+  @@index([discussionId])
+  @@index([status])
+  @@map("quote_public_discussions")
+}
+
+model QuoteSupplierOpportunity {
+  id                  String                 @id @default(cuid())
+  quoteAnalysisId     String
+  quoteAnalysis       QuoteAnalysisRequest   @relation(fields: [quoteAnalysisId], references: [id], onDelete: Cascade)
+  supplierId          String
+  compatibilityScore  Int
+  opportunityType     QuoteOpportunityType
+  status              QuoteOpportunityStatus @default(new_opportunity)
+  visibleToSupplier   Boolean                @default(false)
+  userContactShared   Boolean                @default(false)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@index([quoteAnalysisId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([compatibilityScore])
+  @@map("quote_supplier_opportunities")
+}
+
+model SupplierProfile {
+  id                       String                     @id @default(cuid())
+  userId                   String                     @unique
+  businessName             String
+  categoryMain             String
+  servicesOffered          Json
+  eventTypes               Json
+  baseCity                 String?
+  baseRegion               String?
+  coveredProvinces         Json
+  coveredRegions           Json
+  priceRange               String?
+  minimumBudget            Int?
+  portfolioUrl             String?
+  vibesPlannerProfileUrl   String?
+  verificationStatus       SupplierVerificationStatus @default(unverified)
+  badgeLevel               SupplierBadgeLevel         @default(bronze)
+  reputationPoints         Int                        @default(0)
+  usefulAnswersCount       Int                        @default(0)
+  moderationWarningsCount  Int                        @default(0)
+  profileCompletionScore   Int                        @default(0)
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  @@index([categoryMain])
+  @@index([baseRegion])
+  @@index([badgeLevel])
+  @@map("supplier_profiles")
+}
+
+model SupplierAnswer {
+  id                     String                   @id @default(cuid())
+  supplierId             String
+  discussionId           String?
+  quoteAnalysisId        String?
+  answerBody             String
+  answerType             SupplierAnswerType
+  moderationStatus       SupplierModerationStatus @default(pending)
+  helpfulCount           Int                      @default(0)
+  flaggedCount           Int                      @default(0)
+  containsContactBlocked Boolean                  @default(false)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+
+  @@index([supplierId])
+  @@index([discussionId])
+  @@index([quoteAnalysisId])
+  @@index([moderationStatus])
+  @@map("supplier_answers")
+}
+
+model SupplierDashboardEvent {
+  id         String   @id @default(cuid())
+  supplierId String
+  eventType  String
+  entityType String
+  entityId   String
+  metadata   Json
+  createdAt  DateTime @default(now())
+
+  @@index([supplierId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("supplier_dashboard_events")
+}

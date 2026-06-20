@@ -1,0 +1,47 @@
+[build]
+  command = "pnpm build:netlify-db"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_VERSION = "10.24.0"
+  AWS_LAMBDA_JS_RUNTIME = "nodejs20.x"
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/fornitori-vibes/*"
+  to = "https://www.vibesplanner.com/vetrine/:splat"
+  status = 301
+  force = true
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[plugins]]
+  package = "./netlify/plugins/prune-next-function"
+
+[[edge_functions]]
+  function = "geo-language"
+  path = "/en"
+
+[[edge_functions]]
+  function = "geo-language"
+  path = "/en/*"
+
+[[edge_functions]]
+  function = "geo-language"
+  path = "/es"
+
+[[edge_functions]]
+  function = "geo-language"
+  path = "/es/*"
+
+[[edge_functions]]
+  function = "geo-language"
+  path = "/fr"
+
+[[edge_functions]]
+  function = "geo-language"
+  path = "/fr/*"

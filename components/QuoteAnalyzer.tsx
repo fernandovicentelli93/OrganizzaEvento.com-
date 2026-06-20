@@ -1465,21 +1465,21 @@ function QuoteSupplierStrip({
   if (!active || !suppliers.length) return null;
 
   return (
-    <section className="rounded-md border border-violet-cta/20 bg-white p-4 shadow-sm">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="rounded-md border border-violet-cta/20 bg-white p-3 shadow-sm">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.source}</p>
-          <h2 className="mt-2 text-base font-semibold text-ink">{copy.title}</h2>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">{copy.text}</p>
+          <h2 className="mt-1 text-base font-semibold text-ink">{copy.title}</h2>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-muted">{copy.text}</p>
         </div>
-        <p className="inline-flex w-fit rounded-md bg-cream px-3 py-2 text-xs font-semibold text-muted">
+        <p className="inline-flex w-fit rounded-md bg-cream px-2.5 py-1.5 text-xs font-semibold text-muted">
           {suppliers.length} {copy.count}
         </p>
       </div>
-      <div className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
+      <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">
         {suppliers.map((supplier) => (
-          <article key={supplier.id} className="flex w-[20rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm sm:w-[22rem]">
-            <div className="relative h-44 bg-petal sm:h-48">
+          <article key={supplier.id} className="flex w-[16.5rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm sm:w-[18rem]">
+            <div className="relative h-32 bg-petal sm:h-36">
               {supplier.imageUrl ? (
                 <img src={supplier.imageUrl} alt={supplier.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
               ) : (
@@ -1491,18 +1491,18 @@ function QuoteSupplierStrip({
                 </span>
               ) : null}
             </div>
-            <div className="flex flex-1 flex-col p-3">
+            <div className="flex flex-1 flex-col p-2.5">
               <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{quoteSupplierCategoryLabel(supplier, locale)}</p>
-              <h3 className="mt-2 line-clamp-2 min-h-[2.7rem] text-base font-semibold leading-snug text-ink">{supplier.name}</h3>
-              <p className="mt-2 line-clamp-3 min-h-[3.75rem] text-xs leading-5 text-muted">{quoteSupplierPreview(supplier, locale)}</p>
-              <p className="mt-3 truncate rounded-md bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted">
+              <h3 className="mt-1.5 line-clamp-2 min-h-[2.35rem] text-sm font-semibold leading-snug text-ink">{supplier.name}</h3>
+              <p className="mt-1.5 line-clamp-2 min-h-[2.55rem] text-xs leading-5 text-muted">{quoteSupplierPreview(supplier, locale)}</p>
+              <p className="mt-2 truncate rounded-md bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted">
                 {quoteSupplierDistanceLabel(supplier, locale)}
               </p>
               <a
                 href={supplier.vibesUrl}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
-                className="focus-ring mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white transition hover:bg-violet-cta"
+                className="focus-ring mt-2 inline-flex min-h-9 w-full items-center justify-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white transition hover:bg-violet-cta"
               >
                 <img src="/partners/vibes-planner/logo.jpg" alt="" className="h-5 w-5 rounded bg-white object-cover" />
                 {searchCopy.external}
@@ -2157,12 +2157,12 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={[
-        "block cursor-pointer rounded-md border border-dashed px-4 py-4 text-sm font-semibold text-ink transition",
+        "block h-full cursor-pointer rounded-md border border-dashed px-4 py-4 text-sm font-semibold text-ink transition",
         isDraggingFile ? "border-violet-cta bg-white shadow-soft ring-2 ring-violet-cta/20" : "border-violet-cta/45 bg-petal hover:border-violet-cta hover:bg-white"
       ].join(" ")}
     >
       <span className="block text-base font-semibold text-ink">{copy.uploadLabel}</span>
-      <span className="mt-3 block rounded-md border border-line/70 bg-white/70 px-4 py-4">
+      <span className="mt-3 block rounded-md border border-line/70 bg-white/70 px-3 py-3">
         <span className="block text-sm font-semibold text-ink">{isDraggingFile ? copy.dropActive : copy.dropTitle}</span>
         <span className="mt-1 block text-xs font-normal leading-5 text-muted">{copy.dropHint}</span>
       </span>
@@ -2186,18 +2186,20 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
       {aiStatus === "loading" ? <AiAnalysisLoadingOverlay copy={copy} /> : null}
       <div className="grid gap-6">
       <section className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
-        {uploadControl}
+        <div className="grid gap-4 xl:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)] xl:items-stretch">
+          {uploadControl}
 
-        <label className="mt-4 block">
-          <span className="block text-sm font-semibold text-ink">{copy.inputLabel}</span>
-          <textarea
-            value={rawText}
-            onChange={(event) => setRawText(event.target.value)}
-            rows={9}
-            placeholder={copy.placeholder}
-            className="focus-ring mt-3 w-full rounded-md border border-line bg-cream px-4 py-3 text-sm leading-7 text-ink"
-          />
-        </label>
+          <label className="block">
+            <span className="block text-sm font-semibold text-ink">{copy.inputLabel}</span>
+            <textarea
+              value={rawText}
+              onChange={(event) => setRawText(event.target.value)}
+              rows={8}
+              placeholder={copy.placeholder}
+              className="focus-ring mt-3 min-h-[18rem] w-full rounded-md border border-line bg-cream px-4 py-3 text-sm leading-7 text-ink xl:h-[calc(100%-2rem)]"
+            />
+          </label>
+        </div>
 
         <div className="mt-4 rounded-lg border border-line bg-cream p-4">
           <p className="text-sm font-semibold text-ink">{formCopy.contextTitle}</p>
@@ -2259,11 +2261,11 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         {files.length ? (
           <div className="mt-4">
             <p className="text-sm font-semibold text-ink">{copy.attachmentsTitle}</p>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {files.map((file) => (
-                <div key={file.id} className="overflow-hidden rounded-lg border border-line bg-cream">
-                  {file.previewUrl ? <img src={file.previewUrl} alt="" className="h-28 w-full object-cover" /> : null}
-                  <p className="p-3 text-xs font-semibold leading-5 text-muted">{file.label}</p>
+                <div key={file.id} className="overflow-hidden rounded-md border border-line bg-cream">
+                  {file.previewUrl ? <img src={file.previewUrl} alt="" className="h-16 w-full object-cover sm:h-20" /> : null}
+                  <p className="p-2 text-[11px] font-semibold leading-4 text-muted">{file.label}</p>
                 </div>
               ))}
             </div>
@@ -2568,6 +2570,14 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
   const copy = qualityPanelCopies[locale];
   const tone = qualityTone(result.score);
   const scoreText = result.score >= 10 ? "10" : result.score.toFixed(1).replace(".", locale === "en" ? "." : ",");
+  const detailLabel =
+    locale === "it"
+      ? "Vedi altri dettagli sul preventivo"
+      : locale === "en"
+        ? "See more quote details"
+        : locale === "es"
+          ? "Ver más detalles del presupuesto"
+          : "Voir plus de détails sur le devis";
 
   return (
     <div className={["rounded-md border p-4 shadow-sm", tone.shell].join(" ")}>
@@ -2582,6 +2592,17 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
           <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/80">
             <div className={["h-full rounded-full", tone.bar].join(" ")} style={{ width: `${Math.min(100, Math.max(8, result.score * 10))}%` }} />
           </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {result.criteria.slice(0, 8).map((criterion) => (
+              <div key={criterion.id} className="rounded-md border border-line/70 bg-white/80 px-3 py-2">
+                <p className="truncate text-[11px] font-semibold text-muted">{criterion.label}</p>
+                <p className="mt-1 text-base font-semibold leading-none text-ink">{Math.round(criterion.points)}/100</p>
+              </div>
+            ))}
+          </div>
+          <VibesSupplierCta variant="light" className="mt-4 min-h-11 shadow-none">
+            {copy.cta}
+          </VibesSupplierCta>
         </div>
         <div className="grid gap-3">
           <div className="rounded-md bg-white/75 p-3">
@@ -2595,16 +2616,13 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
         </div>
       </div>
 
-      <div className="mt-5 rounded-md border border-line/70 bg-white p-3">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-sm font-semibold text-ink">{copy.criteria}</h3>
-          <span className="rounded-md bg-cream px-2 py-1 text-xs font-semibold text-muted">
-            {result.totalPoints}/100 {copy.points}
-          </span>
-        </div>
+      <details className="mt-4 rounded-md border border-line/70 bg-white/90 p-3">
+        <summary className="cursor-pointer rounded-md bg-cream px-3 py-2 text-sm font-semibold text-ink transition hover:bg-petal">
+          {detailLabel}
+        </summary>
         <div className="mt-3 grid gap-2">
           {result.criteria.map((criterion) => (
-            <div key={criterion.id} className="grid gap-2 rounded-md bg-cream px-3 py-3 text-sm sm:grid-cols-[minmax(150px,0.6fr)_minmax(120px,0.25fr)_minmax(180px,1fr)] sm:items-center">
+            <div key={criterion.id} className="grid gap-2 rounded-md bg-cream px-3 py-3 text-sm sm:grid-cols-[minmax(150px,0.45fr)_minmax(80px,0.15fr)_minmax(180px,1fr)] sm:items-center">
               <p className="font-semibold text-ink">{criterion.label}</p>
               <p className="text-muted">
                 {criterion.points}/{criterion.maxPoints}
@@ -2615,33 +2633,24 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-3">
-        <MiniList title={copy.strengths} items={result.strengths} />
-        <MiniList title={copy.missing} items={result.missingItems} />
-        <MiniList title={copy.questions} items={result.questions} accent />
-      </div>
-
-      {result.appliedCaps.length ? (
-        <div className="mt-4 rounded-md border border-line bg-white/75 p-3">
-          <p className="text-sm font-semibold text-ink">{copy.caps}</p>
-          <ul className="mt-2 grid gap-2">
-            {result.appliedCaps.slice(0, 4).map((item) => (
-              <li key={item} className="text-xs leading-5 text-muted">
-                {item}
-              </li>
-            ))}
-          </ul>
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          <MiniList title={copy.strengths} items={result.strengths} />
+          <MiniList title={copy.missing} items={result.missingItems} />
+          <MiniList title={copy.questions} items={result.questions} accent />
         </div>
-      ) : null}
-
-      <div className="mt-4 rounded-md border border-violet-cta/20 bg-white/85 p-3">
-        <p className="text-sm leading-6 text-muted">{result.vibesCta}</p>
-        <VibesSupplierCta variant="light" className="mt-3 min-h-11 shadow-none">
-          {copy.cta}
-        </VibesSupplierCta>
-      </div>
+        {result.appliedCaps.length ? (
+          <div className="mt-4 rounded-md border border-line bg-white/75 p-3">
+            <p className="text-sm font-semibold text-ink">{copy.caps}</p>
+            <ul className="mt-2 grid gap-2">
+              {result.appliedCaps.slice(0, 4).map((item) => (
+                <li key={item} className="text-xs leading-5 text-muted">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </details>
     </div>
   );
 }

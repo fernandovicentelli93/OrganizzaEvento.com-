@@ -688,18 +688,32 @@ function moneyValues(text: string) {
 }
 
 function detectService(text: string, requested?: QuoteServiceType): QuoteServiceType {
-  if (requested && requested !== "altro") return requested;
   const normalized = normalize(text);
-  const scored = Object.entries(serviceProfiles).map(([service, profile]) => ({
-    service: service as QuoteServiceType,
-    score: profile.keywords.reduce((total, keyword) => {
+  const scored = Object.entries(serviceProfiles).map(([service, profile]) => {
+    const serviceKey = service as QuoteServiceType;
+    const score = profile.keywords.reduce((total, keyword) => {
       const normalizedKeyword = normalize(keyword);
       if (!normalizedKeyword || !normalized.includes(normalizedKeyword)) return total;
       return total + (normalizedKeyword.includes(" ") || normalizedKeyword.length >= 9 ? 2 : 1);
-    }, 0)
-  }));
+    }, 0);
+
+    return {
+      service: serviceKey,
+      score,
+      weightedScore: score + (requested === serviceKey && requested !== "altro" ? 1.5 : 0)
+    };
+  });
   scored.sort((a, b) => b.score - a.score);
-  return scored[0]?.score ? scored[0].service : requested ?? "altro";
+  const contentWinner = scored[0];
+  const requestedScore = scored.find((item) => item.service === requested)?.score ?? 0;
+
+  if (contentWinner?.score >= 3 && contentWinner.service !== requested && contentWinner.score >= requestedScore + 2) {
+    return contentWinner.service;
+  }
+
+  scored.sort((a, b) => b.weightedScore - a.weightedScore);
+  if (scored[0]?.weightedScore > 0) return scored[0].service;
+  return requested ?? "altro";
 }
 
 function detectEvent(text: string, requested?: QuoteEventType): QuoteEventType {

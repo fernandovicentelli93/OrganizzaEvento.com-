@@ -19,6 +19,7 @@ export type OpenAIQuoteAnalysisInput = {
 };
 
 export type OpenAIQuoteAnalysis = {
+  detected_service: QuoteServiceType | "altro";
   user_summary: string;
   public_anonymized_summary: string;
   included_items: string[];
@@ -36,6 +37,7 @@ export type OpenAIQuoteAnalysisResult = {
 };
 
 const fallbackAnalysis: OpenAIQuoteAnalysis = {
+  detected_service: "altro",
   user_summary: "",
   public_anonymized_summary: "",
   included_items: [],
@@ -100,6 +102,7 @@ function parseAnalysis(text: string): OpenAIQuoteAnalysis {
 
   return {
     ...fallbackAnalysis,
+    detected_service: cleanDetectedService(parsed.detected_service),
     user_summary: cleanString(parsed.user_summary),
     public_anonymized_summary: cleanString(parsed.public_anonymized_summary, 1200),
     included_items: cleanStringArray(parsed.included_items),
@@ -110,6 +113,22 @@ function parseAnalysis(text: string): OpenAIQuoteAnalysis {
     recommended_next_action: cleanString(parsed.recommended_next_action, 500),
     score_note: cleanString(parsed.score_note, 400)
   };
+}
+
+function cleanDetectedService(value: unknown): QuoteServiceType | "altro" {
+  const allowed = new Set<QuoteServiceType | "altro">([
+    "dj",
+    "band",
+    "fotografo",
+    "catering",
+    "location",
+    "team_building",
+    "evento_aziendale",
+    "fiori",
+    "open_bar",
+    "altro"
+  ]);
+  return typeof value === "string" && allowed.has(value as QuoteServiceType | "altro") ? (value as QuoteServiceType | "altro") : "altro";
 }
 
 function promptForQuote(input: OpenAIQuoteAnalysisInput) {
@@ -125,8 +144,12 @@ function promptForQuote(input: OpenAIQuoteAnalysisInput) {
     "Classify team building, corporate retreats, company events, conventions, meetings, client events, conferences, kickoffs and workshops as corporate/team-building contexts. Do not classify them as catering or venue only because the quote mentions dinner, coffee break, room rental or a location.",
     "For corporate/team-building quotes, focus on attendee count, objectives, facilitation, agenda, AV rehearsals, welcome desk, badges, coffee breaks, room setup, plan B, insurance, language support and schedule-change costs.",
     "Do not replace ordinary prices, ranges, dates, times or guest counts with redaction tags. Only personal data and supplier identifiers must stay hidden.",
-    `If serviceType is one of location, catering, team_building, evento_aziendale, fiori, open_bar, dj, band, fotografo or other, treat it as the preferred context for all interpretations.`,
-    "Do not override the selected serviceType unless the text is clearly and unambiguously about another complete supplier domain. When serviceType is location, prioritize venue/space and rental details over food/beverage terms, except when text is fully about a different explicit service.",
+    "First detect the real supplier theme from quoteText/OCR text. Use the selected serviceType only as a hint, never as a forced truth.",
+    "Return detected_service using exactly one of: location, catering, dj, band, fotografo, team_building, evento_aziendale, fiori, open_bar, altro.",
+    "If the quote is about room rental, venue, villa, hotel, exclusive use, parking, rain plan, cleaning, time limits or external suppliers, classify as location even if it mentions dinner, menu or drinks as secondary lines.",
+    "If the quote is about food, menu, buffet, waiters, cake, beverages, open bar or price per person as the main offer, classify as catering or open_bar.",
+    "If the quote is about DJ, live music, band, sound, lights, SIAE, microphone, playlist or musical entertainment, classify as dj or band.",
+    "If the quote is about team activity, facilitation, workshop, retreat, corporate agenda, badges, meeting setup or corporate coordination, classify as team_building or evento_aziendale.",
     "When serviceType is team_building or evento_aziendale, report on corporate/team-building aspects even if words like catering, room rental or coffee break are present in budget lines.",
     "Focus on a natural reading of the offer first, then included items, unclear clauses, hidden extras, practical questions and whether the quote is readable.",
     "The public summary must feel like a real community post, not a checklist, audit, advice article or robotic report.",
@@ -135,6 +158,7 @@ function promptForQuote(input: OpenAIQuoteAnalysisInput) {
     "Do not expose personal data, supplier names, phone numbers, emails, addresses, VAT IDs or recognizable references.",
     "Return strict JSON only, with this shape:",
     JSON.stringify({
+      detected_service: "location",
       user_summary: "short private-facing summary",
       public_anonymized_summary: "summary safe to publish in the community",
       included_items: ["item"],

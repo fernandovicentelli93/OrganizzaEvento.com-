@@ -47,6 +47,7 @@ type UploadedQuoteFile = {
 
 type AiQuoteAnalysisState = {
   model: string;
+  detected_service?: QuoteServiceType | "altro";
   user_summary: string;
   public_anonymized_summary: string;
   included_items: string[];
@@ -1227,6 +1228,26 @@ const topicSupplierCategoryMap: Partial<Record<TopicKey, string>> = {
   corporate: "event-planner"
 };
 
+function serviceFromDetectedTopic(text: string, topicKey: TopicKey, fallback: QuoteServiceType): QuoteServiceType {
+  if (topicKey === "music") {
+    return hasAny(text, ["band", "live", "cantante", "musicisti", "set musicale"]) ? "band" : "dj";
+  }
+  if (topicKey === "catering") return "catering";
+  if (topicKey === "location") return "location";
+  if (topicKey === "photoVideo") return "fotografo";
+  if (topicKey === "flowers") return "fiori";
+  if (topicKey === "openBar") return "open_bar";
+  if (topicKey === "corporate") {
+    return hasAny(text, ["team building", "teambuilding", "facilitatore", "facilitatori", "workshop", "retreat", "attività di team"]) ? "team_building" : "evento_aziendale";
+  }
+  return fallback;
+}
+
+function detectServiceFromContent(text: string, fallback: QuoteServiceType) {
+  const topic = detectTopic(text, fallback);
+  return serviceFromDetectedTopic(text, topic.key, fallback);
+}
+
 function detectTopic(source: string, preferredService: QuoteServiceType) {
   const preferredKey = preferredService ? serviceTopicMap[preferredService] : undefined;
   const normalized = normalize(source);
@@ -1240,11 +1261,20 @@ function detectTopic(source: string, preferredService: QuoteServiceType) {
 
     return {
       topic,
-      score: keywordScore + (topic.key === preferredKey ? 8 : 0)
+      score: keywordScore,
+      weightedScore: keywordScore + (topic.key === preferredKey ? 1.5 : 0)
     };
   });
   scores.sort((a, b) => b.score - a.score);
-  return scores[0]?.score ? scores[0].topic : generalTopic;
+  const contentWinner = scores[0];
+  const preferredScore = scores.find((item) => item.topic.key === preferredKey)?.score ?? 0;
+
+  if (contentWinner?.score >= 3 && contentWinner.topic.key !== preferredKey && contentWinner.score >= preferredScore + 2) {
+    return contentWinner.topic;
+  }
+
+  scores.sort((a, b) => b.weightedScore - a.weightedScore);
+  return scores[0]?.weightedScore ? scores[0].topic : generalTopic;
 }
 
 type QuoteSupplierStripProps = {
@@ -1720,6 +1750,7 @@ function aiAnalysisToReport(report: QuoteAnalysisReport, aiAnalysis: AiQuoteAnal
 
   return {
     ...report,
+    detected_service: aiAnalysis.detected_service && aiAnalysis.detected_service !== "altro" ? aiAnalysis.detected_service : report.detected_service,
     user_summary: aiAnalysis.user_summary || report.user_summary,
     public_anonymized_summary: aiAnalysis.public_anonymized_summary || report.public_anonymized_summary,
     included_items: pickUnique(aiAnalysis.included_items).slice(0, 9),
@@ -1846,13 +1877,15 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
       }),
     [city, durationEstimate, eventDate, eventType, files, guestsCount, locale, objective, province, redactedText, region, selectedSpecifics, serviceType, totalAmount]
   );
+  const displayReport = useMemo(() => aiAnalysisToReport(report, aiAnalysis, locale), [aiAnalysis, locale, report]);
+  const analysisServiceType = displayReport.detected_service || serviceType;
   const quality = useMemo(
     () =>
       analyzeQuoteQuality({
         locale,
         rawText: sourceText,
         sanitizedText: redactedText,
-        serviceType,
+        serviceType: analysisServiceType,
         eventType,
         city,
         province,
@@ -1864,10 +1897,12 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         userGoal: objective,
         selectedDetails: selectedSpecifics
       }),
-    [city, durationEstimate, eventDate, eventType, guestsCount, locale, objective, province, rawText, redactedText, region, selectedSpecifics, serviceType, sourceText, totalAmount]
+    [analysisServiceType, city, durationEstimate, eventDate, eventType, guestsCount, locale, objective, province, rawText, redactedText, region, selectedSpecifics, sourceText, totalAmount]
   );
-  const result = useMemo(() => buildAnalysis(redactedText, sourceForTopic, copy, locale, files.length > 0, serviceType), [copy, files.length, locale, redactedText, serviceType, sourceForTopic]);
-  const displayReport = useMemo(() => aiAnalysisToReport(report, aiAnalysis, locale), [aiAnalysis, locale, report]);
+  const result = useMemo(
+    () => buildAnalysis(redactedText, sourceForTopic, copy, locale, files.length > 0, analysisServiceType),
+    [analysisServiceType, copy, files.length, locale, redactedText, sourceForTopic]
+  );
   const detectedServiceLabel = formCopy.serviceOptions[displayReport.detected_service] ?? result.topic.label[locale];
   const communityDiscussion = useMemo(
     () => formatCommunityDiscussion(locale, displayReport, result, detectedServiceLabel, city),
@@ -1890,7 +1925,13 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
 
   function autoSelectDetailsFromText(text: string) {
     if (!text.trim()) return;
-    const detected = serviceSpecificOptions[serviceType]
+    const detectedService = detectServiceFromContent(text, serviceType);
+    const optionService = detectedService === "altro" ? serviceType : detectedService;
+    if (optionService !== serviceType) {
+      setServiceType(optionService);
+      setSelectedSpecifics((current) => current.filter((item) => serviceSpecificOptions[optionService].some((option) => option.value === item)));
+    }
+    const detected = serviceSpecificOptions[optionService]
       .filter((option) => hasAny(text, [option.value, ...Object.values(option.label)]))
       .map((option) => option.value);
 
@@ -2262,16 +2303,23 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         ) : hasAiReport ? (
           <div className="mt-5 space-y-5">
             <div className="rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
-              <h2 className="text-base font-semibold text-ink">
-                {locale === "it"
-                  ? "Abbiamo letto il tuo preventivo"
-                  : locale === "en"
-                    ? "We read your Italian quote"
-                    : locale === "es"
-                      ? "Hemos leido tu presupuesto italiano"
-                      : "Nous avons lu votre devis italien"}
-              </h2>
-              <p className="mt-2 text-muted">{displayReport.user_summary}</p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-ink">
+                    {locale === "it"
+                      ? "Abbiamo letto il tuo preventivo"
+                      : locale === "en"
+                        ? "We read your Italian quote"
+                        : locale === "es"
+                          ? "Hemos leído tu presupuesto italiano"
+                          : "Nous avons lu votre devis italien"}
+                  </h2>
+                  <p className="mt-2 text-muted">{displayReport.user_summary}</p>
+                </div>
+                <span className="inline-flex w-fit shrink-0 rounded-md bg-white px-3 py-2 text-xs font-semibold text-violet-cta shadow-sm">
+                  {detectedServiceLabel}
+                </span>
+              </div>
             </div>
             <QuoteSupplierStrip
               active={hasAiReport}
@@ -2285,21 +2333,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               region={region}
               eventLabel={formCopy.eventOptions[eventType]}
             />
-            <div className="rounded-md border border-line bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
-              <h2 className="mt-2 text-xl font-semibold text-ink">{result.topic.title[locale]}</h2>
-              <p className="mt-1 text-sm leading-6 text-muted">
-                {copy.topicTitle}: <span className="font-semibold text-ink">{result.topic.label[locale]}</span>
-              </p>
-            </div>
-            {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
-            <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
-            <div className="rounded-md border border-line bg-white p-4">
-              <h2 className="text-base font-semibold text-ink">{copy.publicPost}</h2>
-              <div className="mt-3 whitespace-pre-line rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
-                {communityDiscussion}
-              </div>
-            </div>
             <div className="rounded-md border border-violet-cta/25 bg-petal p-4">
               <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
               <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
@@ -2316,17 +2349,38 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                 </VibesSupplierCta>
               </div>
             </div>
-            {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
-            <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
-              <h2 className="text-base font-semibold text-ink">{copy.detailedReading}</h2>
-              <p className="mt-2 text-muted">{result.reading}</p>
-              <p className="mt-2 text-muted">{displayReport.recommended_next_action}</p>
+            <div className="rounded-md border border-line bg-white p-4">
+              <h2 className="text-base font-semibold text-ink">{copy.publicPost}</h2>
+              <div className="mt-3 max-h-44 overflow-auto whitespace-pre-line rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
+                {communityDiscussion}
+              </div>
             </div>
-            <Block title={copy.included} items={displayReport.included_items} />
-            <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
-            <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
-            <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
-            <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
+            {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
+            <details className="rounded-md border border-line bg-white p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-ink">
+                {locale === "it"
+                  ? "Apri dettagli dell'analisi"
+                  : locale === "en"
+                    ? "Open analysis details"
+                    : locale === "es"
+                      ? "Abrir detalles del análisis"
+                      : "Ouvrir les détails de l'analyse"}
+              </summary>
+              <div className="mt-4 space-y-4">
+                <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
+                  <h2 className="mt-2 text-lg font-semibold text-ink">{result.topic.title[locale]}</h2>
+                  <p className="mt-2 text-muted">{result.reading}</p>
+                </div>
+                {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
+                <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
+                <Block title={copy.included} items={displayReport.included_items} />
+                <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
+                <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
+                <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
+                <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
+              </div>
+            </details>
           </div>
         ) : (
           <AiAnalysisLoadingCard copy={copy} />

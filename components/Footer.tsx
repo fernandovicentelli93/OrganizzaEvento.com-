@@ -1,15 +1,62 @@
 ﻿"use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { SITE_NAME, SUPPORT_EMAIL, SUPPORT_EMAIL_LINK, VIBES_PLANNER_URL } from "@/lib/constants";
 import { footerCopy, localeFromPathname, localizedStaticPath } from "@/lib/i18n-basic";
+
+const DesktopSupplierSearch = dynamic(
+  () => import("@/components/VibesSupplierSearch").then((mod) => mod.VibesSupplierSearch),
+  {
+    ssr: false,
+    loading: () => (
+      <span className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-line bg-white px-4 py-3 text-sm font-semibold text-ink">
+        Cerco Fornitori
+      </span>
+    )
+  }
+);
 
 export function Footer() {
   const pathname = usePathname();
   const locale = localeFromPathname(pathname);
   const copy = footerCopy[locale];
+  const [showDesktopSupplierSearch, setShowDesktopSupplierSearch] = useState(false);
+  const supplierFinderCopy =
+    locale === "it"
+      ? {
+          label: "Cerco Fornitori",
+          title: "Trova fornitori con AI e Vibes Planner.",
+          text: "Apri la ricerca desktop: categoria, zona e servizio vengono letti dal motore AI e ordinati sulle vetrine Vibes.",
+          button: "Cerco Fornitori",
+          link: "Apri la pagina completa"
+        }
+      : locale === "en"
+        ? {
+            label: "Find Suppliers",
+            title: "Find Italian suppliers with AI and Vibes Planner.",
+            text: "Open the desktop search: category, area and service are read by the AI engine and ranked on Vibes showcases.",
+            button: "Find Suppliers",
+            link: "Open the full page"
+          }
+        : locale === "es"
+          ? {
+              label: "Buscar Proveedores",
+              title: "Encuentra proveedores italianos con AI y Vibes Planner.",
+              text: "Abre la búsqueda desktop: categoría, zona y servicio se leen con AI y se ordenan sobre vitrinas Vibes.",
+              button: "Buscar Proveedores",
+              link: "Abrir la página completa"
+            }
+          : {
+              label: "Trouver des Prestataires",
+              title: "Trouvez des prestataires italiens avec AI et Vibes Planner.",
+              text: "Ouvrez la recherche desktop : catégorie, zone et service sont lus par l'AI et classés sur les vitrines Vibes.",
+              button: "Trouver des Prestataires",
+              link: "Ouvrir la page complète"
+            };
   const cookiePreferencesLabel =
     locale === "it" ? "Preferenze cookie" : locale === "en" ? "Cookie preferences" : locale === "es" ? "Preferencias de cookies" : "Préférences cookies";
   const isLegalPage = [
@@ -27,9 +74,17 @@ export function Footer() {
     window.dispatchEvent(new Event("organizzaevento:open-cookie-preferences"));
   };
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const update = () => setShowDesktopSupplierSearch(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener("change", update);
+    return () => mediaQuery.removeEventListener("change", update);
+  }, []);
+
   return (
     <footer className="border-t border-line bg-petal">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-muted md:grid-cols-[1.2fr_0.8fr_0.8fr]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-muted md:grid-cols-[1.2fr_0.8fr_0.8fr] lg:max-w-7xl lg:grid-cols-[1.15fr_0.72fr_0.86fr_0.82fr]">
         <div>
           <Image src="/brand/logo.png" alt={SITE_NAME} width={2400} height={720} className="h-12 w-auto object-contain" />
           <p className="mt-4 max-w-md leading-7">{copy.description}</p>
@@ -84,6 +139,20 @@ export function Footer() {
             {locale === "it" ? "Analizza preventivo" : locale === "en" ? "Analyze quote" : locale === "es" ? "Analizar presupuesto" : "Analyser devis"}
           </Link>
         </nav>
+
+        {showDesktopSupplierSearch ? (
+          <section className="hidden rounded-md border border-line bg-white/80 p-4 shadow-sm lg:block" aria-label={supplierFinderCopy.label}>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">{supplierFinderCopy.label}</p>
+            <h2 className="mt-2 text-lg font-semibold leading-tight text-ink">{supplierFinderCopy.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">{supplierFinderCopy.text}</p>
+            <DesktopSupplierSearch locale={locale} variant="light" className="mt-4 w-full rounded-md shadow-none">
+              {supplierFinderCopy.button}
+            </DesktopSupplierSearch>
+            <Link className="mt-3 inline-flex text-xs font-semibold text-violet-cta hover:text-violet-hover" href={localizedStaticPath(locale, "findSuppliers")}>
+              {supplierFinderCopy.link}
+            </Link>
+          </section>
+        ) : null}
 
         <div>
           <p className="font-semibold text-ink">{copy.contacts}</p>

@@ -38,3 +38,4 @@ pnpm-debug.log*
 *.log
 tsconfig.tsbuildinfo
 tmp-*.html
+*.zip

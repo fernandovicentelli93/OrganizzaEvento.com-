@@ -54,7 +54,7 @@ const copy: Record<Locale, Copy> = {
     missingTitle: "Voci che spesso mancano",
     hiddenTitle: "Extra da controllare",
     questionsTitle: "Domande da fare al fornitore",
-    benchmarkTitle: "Prima di dire si al preventivo",
+    benchmarkTitle: "Prima di dire sì al preventivo",
     benchmarkFallback: "Controlla se il prezzo è scritto in modo leggibile: cosa è incluso, cosa resta fuori, quante ore copre il servizio e cosa succede se l'evento cambia numero di invitati, orario o location.",
     benchmarkMeta: "Suggerimento: cancella nomi, telefoni, email e riferimenti del fornitore prima di pubblicare. La community può aiutarti meglio se vede voci, condizioni e contesto dell'evento.",
     guideTitle: (service) => `Guida pratica al preventivo ${service}`,
@@ -98,7 +98,7 @@ const copy: Record<Locale, Copy> = {
   es: {
     eyebrow: "Análisis de presupuestos italianos",
     subtitle: (service, place) =>
-      `Sube o pega un presupuesto italiano de ${service}${place ? ` para un evento en ${place}` : ""}: revisà partidas incluidas, extras, puntos qué faltan y preguntas antes de confirmar.`,
+      `Sube o pega un presupuesto italiano de ${service}${place ? ` para un evento en ${place}` : ""}: revisa partidas incluidas, extras, puntos que faltan y preguntas antes de confirmar.`,
     primaryCta: "Analizar presupuesto",
     secondaryCta: "Comparar proveedores italianos",
     noLogin: "Puedes empezar sin registro. Los datos sensibles se ocultan antes de crear una conversación pública.",
@@ -269,10 +269,10 @@ function localContextText(page: QuoteAnalysisPage, locale: Locale) {
   if (page.municipality) {
     const serviceName = page.service ? getServiceLabel(page.service, locale) : "";
     const values = {
-      it: `Se il tuo evento ? ? ${page.municipality.comuneName} o dintorni, racconta anche zona, stagione, numero invitati e orari. Un preventivo ${serviceName} cambia molto se ci sono trasferte, vincoli della location o tempi di montaggio stretti.`,
+      it: `Se il tuo evento è a ${page.municipality.comuneName} o dintorni, racconta anche zona, stagione, numero invitati e orari. Un preventivo ${serviceName} cambia molto se ci sono trasferte, vincoli della location o tempi di montaggio stretti.`,
       en: `If your event is in or around ${page.municipality.comuneName}, add area, season, guest count and timings. An Italian ${serviceName} quote can change a lot with travel, venue rules or tight setup times.`,
       es: `Si tu evento es en ${page.municipality.comuneName} o alrededores, añade zona, temporada, invitados y horarios. Un presupuesto italiano de ${serviceName} cambia mucho con desplazamientos, reglas del lugar o montaje ajustado.`,
-      fr: `Si votre événement a lieu ? ${page.municipality.comuneName} ou autour, ajoutez zone, saison, nombre d'invités et horaires. Un devis italien ${serviceName} peut beaucoup varier avec déplacement, contraintes du lieu ou montage serr?.`
+      fr: `Si votre événement a lieu à ${page.municipality.comuneName} ou autour, ajoutez zone, saison, nombre d'invités et horaires. Un devis italien ${serviceName} peut beaucoup varier avec déplacement, contraintes du lieu ou montage serré.`
     };
     return values[locale];
   }
@@ -282,7 +282,7 @@ function localContextText(page: QuoteAnalysisPage, locale: Locale) {
       it: `In ${page.regionName}, confronta il preventivo con persone che stanno organizzando eventi simili: stesso tipo di servizio, periodo, numero invitati e distanza dalla location.`,
       en: `In ${page.regionName}, compare the quote with people planning similar events: same service, season, guest count and distance from the venue.`,
       es: `En ${page.regionName}, compara el presupuesto con personas que preparan eventos parecidos: mismo servicio, temporada, invitados y distancia al lugar.`,
-      fr: `En ${page.regionName}, comparez le devis avec des personnes qui preparent des événements similaires: même service, saison, invités et distance du lieu.`
+      fr: `En ${page.regionName}, comparez le devis avec des personnes qui préparent des événements similaires: même service, saison, invités et distance du lieu.`
     };
     return values[locale];
   }
@@ -290,8 +290,8 @@ function localContextText(page: QuoteAnalysisPage, locale: Locale) {
   const values = {
     it: "Parti dal preventivo che hai ricevuto: caricalo, elimina i dati privati e trasformalo in una domanda semplice. Chi ha già organizzato un evento può dirti cosa chiedere prima di firmare.",
     en: "Start from the quote you received: upload it, remove private details and turn it into a simple question. People who already organized an event in Italy can tell you what to ask before signing.",
-    es: "Empieza por el presupuesto que has recibido: subelo, elimina datos privados y conviertelo en una pregunta sencilla. Quien ya organizo un evento en Italia puede decirte que preguntar antes de firmar.",
-    fr: "Partez du devis reçu: ajoutez-le, retirez les données privées et transformez-le en question simple. Ceux qui ont déjà organise un événement en Italie peuvent vous dire quoi demander avant de signer."
+    es: "Empieza por el presupuesto que has recibido: súbelo, elimina datos privados y conviértelo en una pregunta sencilla. Quien ya organizó un evento en Italia puede decirte qué preguntar antes de firmar.",
+    fr: "Partez du devis reçu: ajoutez-le, retirez les données privées et transformez-le en question simple. Ceux qui ont déjà organisé un événement en Italie peuvent vous dire quoi demander avant de signer."
   };
   return values[locale];
 }
@@ -327,7 +327,7 @@ function quickSteps(locale: Locale) {
     it: [
       ["1. Carica o incolla", "Usa foto, PDF, Word o testo. Il file non viene pubblicato nella conversazione."],
       ["2. Leggi i punti critici", "La pagina separa voci incluse, extra, parti poco chiare e domande da fare."],
-      ["3. Chiedi alla community", "Quando il testo e pronto, apri un confronto con clienti e fornitori italiani."]
+      ["3. Chiedi alla community", "Quando il testo è pronto, apri un confronto con clienti e fornitori italiani."]
     ],
     en: [
       ["1. Upload or paste", "Use a photo, PDF, Word file or text. The file is not published in the discussion."],
@@ -336,13 +336,13 @@ function quickSteps(locale: Locale) {
     ],
     es: [
       ["1. Sube o pega", "Usa foto, PDF, Word o texto. El archivo no se publica en la conversación."],
-      ["2. Lee los puntos criticos", "La pagina separà partidas incluidas, extras, dudas y preguntas que hacer."],
+      ["2. Lee los puntos críticos", "La página separa partidas incluidas, extras, dudas y preguntas que hacer."],
       ["3. Pregunta a la comunidad", "Cuando el texto está listo, compáralo con clientes y proveedores italianos."]
     ],
     fr: [
       ["1. Ajoutez ou collez", "Utilisez photo, PDF, Word ou texte. Le fichier n'est pas publié dans la discussion."],
       ["2. Lisez les points sensibles", "La page sépare postes inclus, extras, zones floues et questions à poser."],
-      ["3. Demandez ? la communauté", "Quand le texte est prêt, comparez-le avec clients et prestataires italiens."]
+      ["3. Demandez à la communauté", "Quand le texte est prêt, comparez-le avec clients et prestataires italiens."]
     ]
   };
   return values[locale];
@@ -365,7 +365,7 @@ function trustBlocks(locale: Locale) {
         "Non sostituiamo consulenze legali, fiscali o professionali.",
         "Non permettiamo risposte pubbliche con recapiti, spam o vendita aggressiva."
       ],
-      vibesTitle: "Perché ce Vibes Planner",
+      vibesTitle: "Perché c'è Vibes Planner",
       vibesText:
         "OrganizzaEvento.com resta una community indipendente. La collaborazione con Vibes Planner serve a collegare, con discrezione, le conversazioni pubbliche alle richieste più strutturate per clienti e fornitori."
     },
@@ -394,7 +394,7 @@ function trustBlocks(locale: Locale) {
         "El archivo original no se publica.",
         "Los datos sensibles se ocultan antes de crear contenido público.",
         "Puedes decidir si mantener el análisis privado o publicar una pregunta anonima.",
-        "Los proveedores solo ven un brief si pides expresamente una comparacion."
+        "Los proveedores solo ven un brief si pides expresamente una comparación."
       ],
       limitsTitle: "Lo que no hacemos",
       limits: [
@@ -408,7 +408,7 @@ function trustBlocks(locale: Locale) {
         "OrganizzaEvento.com sigue siendo una comunidad independiente. La colaboración con Vibes Planner conecta con discreción las conversaciones públicas con solicitudes más estructuradas para clientes y proveedores en Italia."
     },
     fr: {
-      protectTitle: "Comment nous protegeons votre devis",
+      protectTitle: "Comment nous protégeons votre devis",
       protect: [
         "Le fichier original n'est pas publié.",
         "Les données sensibles sont masquées avant de créer un contenu public.",
@@ -422,7 +422,7 @@ function trustBlocks(locale: Locale) {
         "Nous ne remplacons pas un conseil juridique, fiscal ou professionnel.",
         "Nous n'autorisons pas les réponses publiques avec contacts, spam ou vente agressive."
       ],
-      vibesTitle: "Pourquoi Vibes Planner apparait",
+      vibesTitle: "Pourquoi Vibes Planner apparaît",
       vibesText:
         "OrganizzaEvento.com reste une communauté indépendante. La collaboration avec Vibes Planner relie discrètement les discussions publiques a des demandes plus structurées pour clients et prestataires en Italie."
     }
@@ -486,11 +486,11 @@ function JsonLd({ page, locale }: { page: QuoteAnalysisPage; locale: Locale }) {
 
 function BulletPanel({ title, items, accent = false }: { title: string; items: string[]; accent?: boolean }) {
   return (
-    <section className={`rounded-lg border ${accent ? "border-violet-cta/30 bg-petal" : "border-line bg-white"} p-5 shadow-sm`}>
+    <section className={`rounded-md border ${accent ? "border-violet-cta/30 bg-petal" : "border-line bg-white"} p-5 shadow-sm`}>
       <h2 className="text-xl font-semibold text-ink">{title}</h2>
       <div className="mt-4 grid gap-3">
         {items.map((item) => (
-          <p key={item} className="rounded-lg bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink">
+          <p key={item} className="rounded-md bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink">
             {item}
           </p>
         ))}
@@ -555,7 +555,7 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
                   ? "How it works"
                   : locale === "es"
                     ? "Cómo funciona"
-                    : "Comment ca marche"}
+                    : "Comment ça marche"}
             </p>
             <h2 className="mt-3 text-2xl font-semibold leading-tight text-ink">
               {locale === "it"
@@ -563,7 +563,7 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
                 : locale === "en"
                   ? "Upload the Italian quote first, then open the comparison."
                   : locale === "es"
-                    ? "Primero subes el presupuesto italiano, luego abres la comparacion."
+                    ? "Primero subes el presupuesto italiano, luego abres la comparación."
                     : "Ajoutez d'abord le devis italien, puis ouvrez la comparaison."}
             </h2>
             <div className="mt-5 grid gap-3">
@@ -597,7 +597,7 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
                   : locale === "en"
                     ? "Upload the Italian quote and see what needs checking."
                     : locale === "es"
-                      ? "Sube el presupuesto italiano y revisa lo qué falta aclarar."
+                    ? "Sube el presupuesto italiano y revisa qué falta aclarar."
                       : "Ajoutez le devis italien et vérifiez ce qui doit être clarifié."}
               </h2>
               <p className="mt-2 max-w-3xl text-sm leading-7 text-muted">{c.finalCtaText}</p>
@@ -613,31 +613,31 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
       </section>
 
       {details ? (
-        <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 lg:grid-cols-2">
+        <section className="mx-auto grid max-w-6xl gap-4 px-4 py-8 md:grid-cols-2 lg:grid-cols-4">
           <BulletPanel title={c.includedTitle} items={details.required} />
           <BulletPanel title={c.missingTitle} items={details.missing} />
           <BulletPanel title={c.hiddenTitle} items={details.hidden} />
           <BulletPanel title={c.questionsTitle} items={details.questions} accent />
         </section>
       ) : (
-        <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 md:grid-cols-3">
+        <section className="mx-auto grid max-w-6xl gap-4 px-4 py-8 md:grid-cols-3">
           {servicePages.map((item) => (
-            <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-lg border border-line bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
+            <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-md border border-line bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{c.serviceLabel}</p>
-              <h2 className="mt-3 text-2xl font-semibold text-ink">{item.h1}</h2>
-              <p className="mt-3 text-sm leading-7 text-muted">{item.metaDescription}</p>
+              <h2 className="mt-2 text-xl font-semibold leading-tight text-ink">{item.h1}</h2>
+              <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted">{item.metaDescription}</p>
             </Link>
           ))}
         </section>
       )}
 
       {details ? (
-        <section className="mx-auto max-w-6xl px-4 pb-10">
-          <div className="rounded-lg border border-line bg-white p-5 shadow-sm">
+        <section className="mx-auto max-w-6xl px-4 pb-8">
+          <div className="rounded-md border border-line bg-white p-5 shadow-sm">
             <h2 className="text-2xl font-semibold text-ink">{c.faqTitle}</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               {details.faq.map(([question, answer]) => (
-                <article key={question} className="rounded-lg bg-cream p-4">
+                <article key={question} className="rounded-md bg-cream p-4">
                   <h3 className="text-base font-semibold text-ink">{question}</h3>
                   <p className="mt-2 text-sm leading-7 text-muted">{answer}</p>
                 </article>
@@ -647,25 +647,23 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
         </section>
       ) : null}
 
-      <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 lg:grid-cols-[0.75fr_1.25fr]">
-        <article className="rounded-lg border border-violet-cta/20 bg-petal p-5 shadow-sm">
-          <h2 className="text-2xl font-semibold text-ink">{c.finalCtaTitle}</h2>
-          <p className="mt-3 text-sm leading-7 text-muted">{c.finalCtaText}</p>
-          <a href="#analizzatore" className="focus-ring mt-5 inline-flex rounded-md bg-violet-cta px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-hover">
-            {c.primaryCta}
-          </a>
-        </article>
-        <article className="rounded-lg border border-line bg-white p-5 shadow-sm">
-          <h2 className="text-2xl font-semibold text-ink">{c.internalLinksTitle}</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <section className="mx-auto max-w-6xl px-4 pb-10">
+        <article className="rounded-md border border-line bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-ink">{c.internalLinksTitle}</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">{c.finalCtaText}</p>
+            </div>
+            <a href="#analizzatore" className="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-violet-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-hover">
+              {c.primaryCta}
+            </a>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {links.map((item) => (
-              <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-lg border border-line bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink transition hover:bg-petal">
+              <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-md border border-line bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink transition hover:bg-petal">
                 {item.h1}
               </Link>
             ))}
-            <VibesSupplierCta className="rounded-lg bg-cream px-4 py-3 leading-6 shadow-none">
-              {c.findAlternatives}
-            </VibesSupplierCta>
           </div>
         </article>
       </section>

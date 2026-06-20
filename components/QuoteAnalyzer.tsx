@@ -158,6 +158,38 @@ type ToolFormCopy = {
   objectiveOptions: Record<QuoteObjective, string>;
 };
 
+const aiLoadingTips: Record<QuoteAnalyzerLocale, string[]> = {
+  it: [
+    "Un evento riuscito non nasce dal preventivo più basso, ma dalle domande giuste fatte prima.",
+    "Ogni dettaglio chiarito oggi è un imprevisto in meno il giorno dell'evento.",
+    "La chiarezza prima della firma vale più di uno sconto ottenuto troppo tardi.",
+    "Un buon fornitore non teme le domande precise: le usa per lavorare meglio."
+  ],
+  en: [
+    "A successful event is rarely about the lowest quote; it starts with the right questions.",
+    "Every detail clarified today is one less surprise on the event day.",
+    "Clarity before signing is worth more than a discount after a problem.",
+    "A good Italian supplier will welcome precise questions, because they make the event smoother."
+  ],
+  es: [
+    "Un buen evento no empieza con el presupuesto más bajo, sino con las preguntas correctas.",
+    "Cada detalle aclarado hoy es un imprevisto menos el día del evento.",
+    "La claridad antes de firmar vale más que un descuento cuando ya hay un problema.",
+    "Un buen proveedor italiano no teme preguntas precisas: le ayudan a trabajar mejor."
+  ],
+  fr: [
+    "Un événement réussi ne commence pas par le devis le moins cher, mais par les bonnes questions.",
+    "Chaque détail clarifié aujourd'hui évite une surprise le jour de l'événement.",
+    "La clarté avant signature vaut mieux qu'une remise obtenue trop tard.",
+    "Un bon prestataire italien accueille les questions précises, car elles rendent l'événement plus fluide."
+  ]
+};
+
+function randomAiLoadingTip(locale: QuoteAnalyzerLocale) {
+  const tips = aiLoadingTips[locale] ?? aiLoadingTips.it;
+  return tips[Math.floor(Math.random() * tips.length)] ?? tips[0];
+}
+
 type TopicKey = "music" | "catering" | "location" | "photoVideo" | "flowers" | "openBar" | "corporate" | "general";
 
 type TopicProfile = {
@@ -1855,8 +1887,11 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "unavailable" | "error">("idle");
   const [aiAnalysis, setAiAnalysis] = useState<AiQuoteAnalysisState | null>(null);
   const [showInputAfterAnalysis, setShowInputAfterAnalysis] = useState(false);
+  const [isPreparingAnalysis, setIsPreparingAnalysis] = useState(false);
+  const [loadingTip, setLoadingTip] = useState(aiLoadingTips[locale][0]);
   const lastAiSignature = useRef("");
   const analysisRef = useRef<HTMLElement | null>(null);
+  const resultFocusRef = useRef<HTMLDivElement | null>(null);
   const sourceText = [rawText, imageText].filter(Boolean).join("\n\n");
   const redaction = useMemo(() => redactQuoteText(sourceText), [sourceText]);
   const redactedText = redaction.redactedText;
@@ -1919,10 +1954,21 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     [city, detectedServiceLabel, displayReport, locale, result]
   );
   const hasAiReport = aiStatus === "ready" && aiAnalysis !== null;
-  const isWaitingForAi = hasText && !hasAiReport && aiStatus !== "error" && aiStatus !== "unavailable";
+  const showAnalysisLoading = aiStatus === "loading" || isPreparingAnalysis;
+  const isWaitingForAi = (hasText || showAnalysisLoading) && !hasAiReport && aiStatus !== "error" && aiStatus !== "unavailable";
   const canOpenDiscussion = hasAiReport;
   const shouldShowInputPanel = !hasAiReport || showInputAfterAnalysis;
   const askPath = locale === "it" ? "/fai-domanda" : localizedStaticPath(locale, "ask");
+
+  function startAnalysisFeedback(shouldScroll = false) {
+    setLoadingTip(randomAiLoadingTip(locale));
+    setIsPreparingAnalysis(true);
+    if (shouldScroll) {
+      window.setTimeout(() => {
+        analysisRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+      }, 0);
+    }
+  }
 
   function toggleSpecific(value: string) {
     setSelectedSpecifics((current) => (current.includes(value) ? current.filter((item) => item !== value) : [...current, value]));
@@ -1953,6 +1999,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
 
   async function handleFiles(selectedFiles?: FileList | null) {
     if (!selectedFiles?.length) return;
+    startAnalysisFeedback(true);
     const nextFiles: UploadedQuoteFile[] = [];
     const textChunks: string[] = [];
     const ocrChunks: string[] = [];
@@ -1997,7 +2044,21 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     if (ocrChunks.length) {
       setImageText((current) => [current, ...ocrChunks].filter(Boolean).join("\n\n"));
     }
-    autoSelectDetailsFromText([...textChunks, ...ocrChunks].join("\n\n"));
+    const recognizedText = [...textChunks, ...ocrChunks].join("\n\n");
+    autoSelectDetailsFromText(recognizedText);
+    if (!recognizedText.trim()) {
+      setIsPreparingAnalysis(false);
+    }
+  }
+
+  function handleRawTextChange(value: string) {
+    setRawText(value);
+    if (value.trim().length > 20 && aiStatus !== "loading" && !isPreparingAnalysis && !hasAiReport) {
+      startAnalysisFeedback();
+    }
+    if (value.trim().length <= 20 && aiStatus !== "loading") {
+      setIsPreparingAnalysis(false);
+    }
   }
 
   function handleDragEnter(event: DragEvent<HTMLLabelElement>) {
@@ -2035,6 +2096,8 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   async function improveWithAI() {
     if (!hasText || aiStatus === "loading") return;
     setAiAnalysis(null);
+    setIsPreparingAnalysis(true);
+    setLoadingTip((current) => current || randomAiLoadingTip(locale));
     setAiStatus("loading");
     window.setTimeout(() => {
       analysisRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2070,13 +2133,16 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
       };
 
       if (!response.ok || data.ok !== true || !data.analysis || data.source !== "openai") {
+        setIsPreparingAnalysis(false);
         setAiStatus(data.error === "openai_not_configured" ? "unavailable" : "error");
         return;
       }
 
       setAiAnalysis(data.analysis);
+      setIsPreparingAnalysis(false);
       setAiStatus("ready");
     } catch {
+      setIsPreparingAnalysis(false);
       setAiStatus("error");
     }
   }
@@ -2124,10 +2190,20 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   ]);
 
   useEffect(() => {
+    if (aiStatus !== "loading" && !isPreparingAnalysis) {
+      setLoadingTip(aiLoadingTips[locale][0]);
+    }
+  }, [aiStatus, isPreparingAnalysis, locale]);
+
+  useEffect(() => {
     if (!hasAiReport) return;
     setShowInputAfterAnalysis(false);
+    setIsPreparingAnalysis(false);
     window.requestAnimationFrame(() => {
-      analysisRef.current?.scrollIntoView({ behavior: "auto", block: "start" });
+      const target = resultFocusRef.current ?? analysisRef.current;
+      if (!target) return;
+      const top = target.getBoundingClientRect().top + window.scrollY - 96;
+      window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
     });
   }, [hasAiReport]);
 
@@ -2200,7 +2276,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
 
   return (
     <>
-      {aiStatus === "loading" ? <AiAnalysisLoadingOverlay copy={copy} /> : null}
+      {showAnalysisLoading ? <AiAnalysisLoadingOverlay copy={copy} tip={loadingTip} /> : null}
       <div className="grid gap-6">
       {shouldShowInputPanel ? (
       <section className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
@@ -2211,7 +2287,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
             <span className="block text-sm font-semibold text-ink">{copy.inputLabel}</span>
             <textarea
               value={rawText}
-              onChange={(event) => setRawText(event.target.value)}
+              onChange={(event) => handleRawTextChange(event.target.value)}
               rows={8}
               placeholder={copy.placeholder}
               className="focus-ring mt-3 min-h-[18rem] w-full rounded-md border border-line bg-cream px-4 py-3 text-sm leading-7 text-ink xl:h-[calc(100%-2rem)]"
@@ -2360,7 +2436,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         {!hasMaterial ? (
           <p className="mt-5 text-sm leading-7 text-muted">{copy.emptyText}</p>
         ) : isWaitingForAi ? (
-          <AiAnalysisLoadingCard copy={copy} />
+          <AiAnalysisLoadingCard copy={copy} tip={loadingTip} />
         ) : aiStatus === "error" || aiStatus === "unavailable" ? (
           <AiAnalysisErrorCard copy={copy} onRetry={() => void improveWithAI()} />
         ) : hasAiReport ? (
@@ -2402,19 +2478,21 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               </div>
             </div>
             </div>
-            <QuoteSupplierStrip
-              active={hasAiReport}
-              locale={locale}
-              serviceType={displayReport.detected_service}
-              topicKey={result.topic.key}
-              topicLabel={result.topic.label[locale]}
-              serviceLabel={detectedServiceLabel}
-              quoteText={redactedText}
-              city={city}
-              province={province}
-              region={region}
-              eventLabel={formCopy.eventOptions[eventType]}
-            />
+            <div ref={resultFocusRef} className="scroll-mt-24">
+              <QuoteSupplierStrip
+                active={hasAiReport}
+                locale={locale}
+                serviceType={displayReport.detected_service}
+                topicKey={result.topic.key}
+                topicLabel={result.topic.label[locale]}
+                serviceLabel={detectedServiceLabel}
+                quoteText={redactedText}
+                city={city}
+                province={province}
+                region={region}
+                eventLabel={formCopy.eventOptions[eventType]}
+              />
+            </div>
             {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
             <section className="rounded-md border border-line bg-white p-4 shadow-sm">
               <div className="border-b border-line pb-4">
@@ -2473,7 +2551,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
             </section>
           </div>
         ) : (
-          <AiAnalysisLoadingCard copy={copy} />
+          <AiAnalysisLoadingCard copy={copy} tip={loadingTip} />
         )}
       </section>
       </div>
@@ -2481,23 +2559,23 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   );
 }
 
-function AiAnalysisLoadingOverlay({ copy }: { copy: AnalyzerCopy }) {
+function AiAnalysisLoadingOverlay({ copy, tip }: { copy: AnalyzerCopy; tip: string }) {
   return (
     <div className="fixed inset-0 z-[21000] flex items-center justify-center bg-ink/55 px-4 py-6 backdrop-blur-sm" role="status" aria-live="polite">
-      <AiAnalysisLoadingPanel copy={copy} elevated />
+      <AiAnalysisLoadingPanel copy={copy} tip={tip} elevated />
     </div>
   );
 }
 
-function AiAnalysisLoadingCard({ copy }: { copy: AnalyzerCopy }) {
+function AiAnalysisLoadingCard({ copy, tip }: { copy: AnalyzerCopy; tip: string }) {
   return (
     <div className="mt-5" role="status" aria-live="polite">
-      <AiAnalysisLoadingPanel copy={copy} />
+      <AiAnalysisLoadingPanel copy={copy} tip={tip} />
     </div>
   );
 }
 
-function AiAnalysisLoadingPanel({ copy, elevated = false }: { copy: AnalyzerCopy; elevated?: boolean }) {
+function AiAnalysisLoadingPanel({ copy, tip, elevated = false }: { copy: AnalyzerCopy; tip: string; elevated?: boolean }) {
   return (
     <div
       className={[
@@ -2516,6 +2594,10 @@ function AiAnalysisLoadingPanel({ copy, elevated = false }: { copy: AnalyzerCopy
       <div className="mt-5 overflow-hidden rounded-full bg-cream">
         <div className="h-3 w-full origin-left animate-[quoteAnalysisProgress_1.05s_ease-in-out_infinite] rounded-full bg-violet-cta" />
       </div>
+
+      <p className="mt-4 rounded-md border border-line bg-petal px-4 py-3 text-sm italic leading-6 text-ink">
+        {tip}
+      </p>
 
       <div className="mt-5 space-y-3">
         <div className="grid gap-2 sm:grid-cols-3">

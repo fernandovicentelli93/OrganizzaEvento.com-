@@ -1284,6 +1284,7 @@ type QuoteSupplierStripProps = {
   topicKey: TopicKey;
   topicLabel: string;
   serviceLabel: string;
+  quoteText: string;
   city: string;
   province: string;
   region: string;
@@ -1380,6 +1381,7 @@ function QuoteSupplierStrip({
   topicKey,
   topicLabel,
   serviceLabel,
+  quoteText,
   city,
   province,
   region,
@@ -1398,7 +1400,13 @@ function QuoteSupplierStrip({
     let cancelled = false;
     const category = quoteSupplierCategory(serviceType, topicKey);
     const area = province || city || region;
-    const query = [serviceLabel, topicLabel, city, region, eventLabel].filter(Boolean).join(" ");
+    const quoteKeywords = quoteText
+      .replace(/\s+/g, " ")
+      .split(" ")
+      .filter((word) => word.length > 3)
+      .slice(0, 26)
+      .join(" ");
+    const query = [serviceLabel, topicLabel, city, region, eventLabel, quoteKeywords].filter(Boolean).join(" ");
 
     async function load(coordinates?: { lat: number; lng: number }) {
       const params = new URLSearchParams();
@@ -1452,7 +1460,7 @@ function QuoteSupplierStrip({
     return () => {
       cancelled = true;
     };
-  }, [active, city, eventLabel, locale, province, region, serviceLabel, serviceType, topicKey, topicLabel]);
+  }, [active, city, eventLabel, locale, province, quoteText, region, serviceLabel, serviceType, topicKey, topicLabel]);
 
   if (!active || !suppliers.length) return null;
 
@@ -1470,8 +1478,8 @@ function QuoteSupplierStrip({
       </div>
       <div className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
         {suppliers.map((supplier) => (
-          <article key={supplier.id} className="flex w-[17.5rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm">
-            <div className="relative h-36 bg-petal">
+          <article key={supplier.id} className="flex w-[20rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm sm:w-[22rem]">
+            <div className="relative h-44 bg-petal sm:h-48">
               {supplier.imageUrl ? (
                 <img src={supplier.imageUrl} alt={supplier.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
               ) : (
@@ -1485,8 +1493,8 @@ function QuoteSupplierStrip({
             </div>
             <div className="flex flex-1 flex-col p-3">
               <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{quoteSupplierCategoryLabel(supplier, locale)}</p>
-              <h3 className="mt-2 line-clamp-2 min-h-[2.55rem] text-sm font-semibold leading-snug text-ink">{supplier.name}</h3>
-              <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs leading-5 text-muted">{quoteSupplierPreview(supplier, locale)}</p>
+              <h3 className="mt-2 line-clamp-2 min-h-[2.7rem] text-base font-semibold leading-snug text-ink">{supplier.name}</h3>
+              <p className="mt-2 line-clamp-3 min-h-[3.75rem] text-xs leading-5 text-muted">{quoteSupplierPreview(supplier, locale)}</p>
               <p className="mt-3 truncate rounded-md bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted">
                 {quoteSupplierDistanceLabel(supplier, locale)}
               </p>
@@ -2328,6 +2336,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               topicKey={result.topic.key}
               topicLabel={result.topic.label[locale]}
               serviceLabel={detectedServiceLabel}
+              quoteText={redactedText}
               city={city}
               province={province}
               region={region}

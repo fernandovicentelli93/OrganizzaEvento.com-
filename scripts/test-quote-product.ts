@@ -74,6 +74,47 @@ function testQuoteAnalysis() {
   assert.ok(report.score_chiarezza > 0);
   assert.equal(report.public_anonymized_summary.includes("dj@example.com"), false);
   assert.notEqual(report.verdict, "Preventivo poco chiaro");
+
+  const structuredReport = analyzeQuote({
+    locale: "it",
+    serviceType: "location",
+    eventType: "matrimonio",
+    city: "Milano",
+    province: "MI",
+    region: "Lombardia",
+    guestsCount: 90,
+    totalAmount: "3.800 euro",
+    text: [
+      "Preventivo location matrimonio",
+      "Data evento: 12 settembre 2026",
+      "Ospiti previsti: 90 persone",
+      "Servizio incluso: sala interna, giardino, mise en place e coordinamento",
+      "Durata: dalle 17:00 alle 01:00",
+      "Prezzo totale: 3.800 euro IVA inclusa",
+      "Caparra: 30% alla conferma",
+      "Saldo: 7 giorni prima dell'evento",
+      "Extra: pulizie finali e ore oltre orario da quotare a parte",
+      "Condizioni: cambio data soggetto a disponibilità"
+    ].join("\n"),
+    serviceSpecificFields: ["spazi inclusi", "orari", "caparra"]
+  });
+
+  const noisyReport = analyzeQuote({
+    locale: "it",
+    serviceType: "location",
+    eventType: "matrimonio",
+    city: "Milano",
+    province: "MI",
+    region: "Lombardia",
+    guestsCount: 90,
+    totalAmount: "",
+    text: "LE EE 0]\n1 Sei SON ___\n| od] Pr aw\n\nAG) f (I\noy Br 4%\nThen Ss",
+    serviceSpecificFields: []
+  });
+
+  assert.ok(structuredReport.score_chiarezza >= 78);
+  assert.ok(noisyReport.score_chiarezza < 55);
+  assert.ok(structuredReport.score_chiarezza > noisyReport.score_chiarezza);
 }
 
 function testSupplierMatching() {

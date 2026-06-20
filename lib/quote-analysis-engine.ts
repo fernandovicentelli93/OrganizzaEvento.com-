@@ -737,6 +737,129 @@ function lineItems(text: string): QuoteLineItem[] {
     }));
 }
 
+const quoteStructureKeywords = [
+  "preventivo",
+  "offerta",
+  "servizio",
+  "pacchetto",
+  "descrizione",
+  "prezzo",
+  "importo",
+  "totale",
+  "iva",
+  "vat",
+  "caparra",
+  "acconto",
+  "deposito",
+  "saldo",
+  "pagamento",
+  "durata",
+  "ore",
+  "orario",
+  "data",
+  "ospiti",
+  "invitati",
+  "partecipanti",
+  "incluso",
+  "inclusi",
+  "compreso",
+  "escluso",
+  "extra",
+  "trasferta",
+  "montaggio",
+  "smontaggio",
+  "cancellazione",
+  "annullamento",
+  "penale",
+  "validita",
+  "condizioni",
+  "location",
+  "menu",
+  "allestimento",
+  "attrezzatura",
+  "personale"
+];
+
+function quoteStructureClarityScore({
+  text,
+  lineItemList,
+  amounts,
+  hasTiming,
+  hasPaymentTerms,
+  indicative,
+  unclearCount
+}: {
+  text: string;
+  lineItemList: QuoteLineItem[];
+  amounts: string[];
+  hasTiming: boolean;
+  hasPaymentTerms: boolean;
+  indicative: boolean;
+  unclearCount: number;
+}) {
+  const lines = linesFromText(text);
+  const meaningfulLines = lines.filter((line) => normalize(line).length >= 8 && /[a-z]/i.test(normalize(line)));
+  const normalized = normalize(text);
+  const tokens = normalized.split(" ").filter(Boolean);
+  const longWordCount = tokens.filter((token) => /[a-z]/i.test(token) && token.length >= 3).length;
+  const shortTokenCount = tokens.filter((token) => token.length <= 2).length;
+  const wordRatio = tokens.length ? longWordCount / tokens.length : 0;
+  const shortTokenRatio = tokens.length ? shortTokenCount / tokens.length : 1;
+  const compactText = text.replace(/\s/g, "");
+  const readableChars = (compactText.match(/[a-zA-Z0-9À-ÿ€$.,:;/%()\-+]/g) ?? []).length;
+  const unreadableRatio = compactText.length ? (compactText.length - readableChars) / compactText.length : 1;
+  const structureHits = quoteStructureKeywords.filter((keyword) => normalized.includes(normalize(keyword))).length;
+  const structuredLines = meaningfulLines.filter((line) => {
+    const normalizedLine = normalize(line);
+    return (
+      moneyValues(line).length > 0 ||
+      /[:\-–—]/.test(line) ||
+      /^\s*(?:[-*•]|\d+[.)])/.test(line) ||
+      quoteStructureKeywords.some((keyword) => normalizedLine.includes(normalize(keyword)))
+    );
+  });
+  const structuredRatio = meaningfulLines.length ? structuredLines.length / meaningfulLines.length : 0;
+
+  let score = 16;
+  if (normalized.length >= 80) score += 10;
+  if (normalized.length >= 180) score += 8;
+  if (normalized.length >= 320) score += 6;
+  if (meaningfulLines.length >= 3) score += 10;
+  if (meaningfulLines.length >= 6) score += 8;
+  if (meaningfulLines.length >= 10) score += 5;
+  score += Math.min(20, Math.round(structuredRatio * 20));
+  score += Math.min(18, structureHits * 3);
+  if (amounts.length) score += 10;
+  if (amounts.length >= 2) score += 4;
+  if (lineItemList.length >= 3) score += 8;
+  if (lineItemList.length >= 6) score += 4;
+  if (hasTiming) score += 7;
+  if (hasPaymentTerms) score += 6;
+  if (indicative) score += 2;
+  score -= unclearCount * 6;
+
+  if (wordRatio < 0.35) score -= 30;
+  else if (wordRatio < 0.5) score -= 15;
+  if (shortTokenRatio > 0.55) score -= 14;
+  if (unreadableRatio > 0.18) score -= 24;
+  else if (unreadableRatio > 0.1) score -= 10;
+
+  let nextScore = clamp(score);
+  if (normalized.length < 70) nextScore = Math.min(nextScore, 38);
+  if (meaningfulLines.length < 2 && normalized.length < 220) nextScore = Math.min(nextScore, 52);
+  if (structuredRatio < 0.2 && structureHits < 3) nextScore = Math.min(nextScore, 55);
+  if (!amounts.length && !indicative) nextScore = Math.min(nextScore, 72);
+  if (wordRatio < 0.45 || unreadableRatio > 0.15) nextScore = Math.min(nextScore, 45);
+  if (lineItemList.length >= 5 && structuredRatio >= 0.45 && structureHits >= 5 && amounts.length && wordRatio >= 0.55) {
+    nextScore = Math.max(nextScore, 78);
+  }
+  if (lineItemList.length >= 8 && structuredRatio >= 0.6 && structureHits >= 7 && amounts.length >= 2 && wordRatio >= 0.58) {
+    nextScore = Math.max(nextScore, 88);
+  }
+
+  return nextScore;
+}
+
 function hasIndicativePrice(text: string) {
   return hasAny(text, [
     "à partire da",
@@ -920,7 +1043,15 @@ export function analyzeQuote(input: QuoteAnalysisInput): QuoteAnalysisReport {
     .map((item) => translateQuoteAnalysisItem(item, locale));
   const hasPaymentTerms = hasAny(normalized, ["caparra", "accontó", "saldo", "deposit", "payment", "pago", "acompte"]);
   const hasTiming = hasAny(normalized, ["ore", "orario", "hours", "hora", "heures", "durata"]);
-  const clarity = clamp(38 + lineItemList.length * 5 + (amounts.length ? 14 : 0) + (hasTiming ? 10 : 0) + (hasPaymentTerms ? 8 : 0) + (indicative ? 4 : 0) - unclear.length * 5);
+  const clarity = quoteStructureClarityScore({
+    text,
+    lineItemList,
+    amounts,
+    hasTiming,
+    hasPaymentTerms,
+    indicative,
+    unclearCount: unclear.length
+  });
   const completeness = clamp(34 + included.length * 6 - missing.length * 7 + selectedFields.length * 3 + (input.guestsCount ? 5 : 0) + (input.city ? 4 : 0));
   const risk: QuoteAnalysisReport["score_rischio_extra"] = missing.length >= 4 || unclear.length >= 3 ? "alto" : missing.length >= 2 || unclear.length >= 1 ? "medio" : "basso";
   const coherence: QuoteAnalysisReport["score_coerenza_prezzo"] = !extractedTotal ? "non valutabile" : indicative ? "stimata" : amounts.length > 1 ? "da confrontare" : "coerente";

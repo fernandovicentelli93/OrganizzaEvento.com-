@@ -79,7 +79,7 @@ export function CommunityArtBand({ questions }: CommunityArtBandProps) {
                   {publicName(question.displayMode, question.displayName)} - {formatDate(question.createdAt)}
                 </p>
                 <p className="mt-2 text-xs font-semibold text-violet-cta">
-                  {question.answersCount} risposte - {dailyConversationViews(question.slug)} viste oggi
+                  {question.answersCount} risposte - {dailyConversationViews(question.slug, question.createdAt)} viste oggi
                 </p>
               </Link>
             ))}

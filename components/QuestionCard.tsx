@@ -41,7 +41,7 @@ type QuestionCardProps = {
 export function QuestionCard({ question }: QuestionCardProps) {
   const title = displayQuestionTitle(question.title);
   const location = compactLocation(question.city, question.region);
-  const viewsToday = dailyConversationViews(question.slug);
+  const viewsToday = dailyConversationViews(question.slug, question.createdAt);
   const followers = conversationFollowers(question.slug);
   const phaseLabel = EVENT_PHASES.find((phase) => phase.value === question.eventPhase)?.label;
   const visual = getQuestionVisual({ ...question, category: question.category ?? undefined });

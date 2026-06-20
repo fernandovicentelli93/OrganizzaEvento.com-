@@ -508,9 +508,7 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
   const nearby = getNearbyCapitalPages(page, locale);
   const servicePages = quoteServices.map((item) => getQuoteAnalysisServicePage(item.slug, locale)).filter(Boolean) as QuoteAnalysisPage[];
   const p0Pages = service ? getQuoteAnalysisPagesForSitemap(locale, service.slug, "P0").filter((item) => item.pageType === "city").slice(0, 6) : [];
-  const actionPoints = communityActionPoints(locale);
   const steps = quickSteps(locale);
-  const trust = trustBlocks(locale);
   const links = [
     getQuoteAnalysisHubPage(locale),
     ...(service ? [getQuoteAnalysisServicePage(service.slug, locale)].filter(Boolean) as QuoteAnalysisPage[] : servicePages),
@@ -614,25 +612,6 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-4 px-4 py-8 md:grid-cols-3">
-        {steps.map(([title, text]) => (
-          <article key={title} className="rounded-lg border border-line bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-ink">{title}</p>
-            <p className="mt-3 text-sm leading-7 text-muted">{text}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 lg:grid-cols-3">
-        <BulletPanel title={trust.protectTitle} items={trust.protect} />
-        <BulletPanel title={trust.limitsTitle} items={trust.limits} />
-        <article className="rounded-lg border border-line bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-semibold text-ink">{trust.vibesTitle}</h2>
-          <p className="mt-4 text-sm leading-7 text-muted">{trust.vibesText}</p>
-          <VibesSupplierCta className="mt-5 shadow-none">{c.findAlternatives}</VibesSupplierCta>
-        </article>
-      </section>
-
       {details ? (
         <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 lg:grid-cols-2">
           <BulletPanel title={c.includedTitle} items={details.required} />
@@ -651,27 +630,6 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
           ))}
         </section>
       )}
-
-      <section className="mx-auto grid max-w-6xl gap-5 px-4 pb-10 lg:grid-cols-[0.9fr_1.1fr]">
-        <article className="rounded-lg border border-line bg-white p-5 shadow-sm">
-          <h2 className="text-2xl font-semibold text-ink">{c.benchmarkTitle}</h2>
-          <p className="mt-3 text-sm leading-7 text-muted">{c.benchmarkFallback}</p>
-          <p className="mt-4 rounded-lg bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink">{c.benchmarkMeta}</p>
-        </article>
-        <article className="rounded-lg border border-line bg-white p-5 shadow-sm">
-          <h2 className="text-2xl font-semibold text-ink">{service ? c.guideTitle(serviceLabel) : c.localTitle}</h2>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            {localContextText(page, locale)}
-          </p>
-          <div className="mt-5 grid gap-3">
-            {actionPoints.map((item) => (
-              <p key={item} className="rounded-lg bg-petal px-4 py-3 text-sm font-semibold leading-6 text-ink">
-                {item}
-              </p>
-            ))}
-          </div>
-        </article>
-      </section>
 
       {details ? (
         <section className="mx-auto max-w-6xl px-4 pb-10">

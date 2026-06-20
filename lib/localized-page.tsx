@@ -1044,6 +1044,16 @@ function conversationLabels(locale: TranslationLocale) {
   return { replies: "replies", useful: "useful", notUseful: "not useful", views: "views today", open: "Open conversation" };
 }
 
+function localizedConversationViews(conversation: LocalizedConversation) {
+  if (conversation.viewsToday <= 20) return conversation.viewsToday;
+  const seed = `${conversation.title}:${conversation.author}:${conversation.city}`;
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  }
+  return 12 + (hash % 9);
+}
+
 function topicPageLabels(locale: TranslationLocale) {
   if (locale === "es") {
     return {
@@ -1097,6 +1107,7 @@ function ConversationCard({ conversation, href, locale }: { conversation: Locali
   const labels = conversationLabels(locale);
   const replyCount = localizedConversationReplyCount(conversation);
   const notUsefulVotes = localizedConversationNotUsefulVotes(conversation);
+  const viewsToday = localizedConversationViews(conversation);
   return (
     <Link href={href} className="focus-ring group block overflow-hidden rounded-xl border border-line bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
       <div className="grid min-h-full sm:grid-cols-[12rem_1fr]">
@@ -1127,7 +1138,7 @@ function ConversationCard({ conversation, href, locale }: { conversation: Locali
             <span>{replyCount} {labels.replies}</span>
             <span>{conversation.usefulVotes} {labels.useful}</span>
             <span>{notUsefulVotes} {labels.notUseful}</span>
-            <span>{conversation.viewsToday} {labels.views}</span>
+            <span>{viewsToday} {labels.views}</span>
             <span className="ml-auto text-violet-cta group-hover:text-violet-hover">
               {labels.open}
             </span>
@@ -1142,12 +1153,13 @@ function HomeConversationCard({ conversation, href, locale }: { conversation: Lo
   const labels = conversationLabels(locale);
   const replyCount = localizedConversationReplyCount(conversation);
   const notUsefulVotes = localizedConversationNotUsefulVotes(conversation);
+  const viewsToday = localizedConversationViews(conversation);
   const readers =
     locale === "es"
-      ? `Hoy ${conversation.viewsToday} personas han visto esta conversación`
+      ? `Hoy ${viewsToday} personas han visto esta conversación`
       : locale === "fr"
-        ? `Aujourd'hui ${conversation.viewsToday} personnes ont vu cette discussion`
-        : `Today ${conversation.viewsToday} people viewed this conversation`;
+        ? `Aujourd'hui ${viewsToday} personnes ont vu cette discussion`
+        : `Today ${viewsToday} people viewed this conversation`;
   const openedBy = locale === "es" ? "Abierta por" : locale === "fr" ? "Ouverte par" : "Opened by";
   const active =
     locale === "es"
@@ -2831,6 +2843,7 @@ function LocalizedConversationDetailPage({ locale, conversation }: { locale: Tra
   const answers = localizedConversationAnswers(locale, conversation);
   const replyCount = localizedConversationReplyCount(conversation);
   const notUsefulVotes = localizedConversationNotUsefulVotes(conversation);
+  const viewsToday = localizedConversationViews(conversation);
   const highlightedAnswer = answers.find((answer) => answer.isBestAnswer) ?? answers[0];
   const conversationUrl = `${siteUrl}${localizedConversationHref(locale, conversation)}`;
   const structuredPublishedAt = "2026-06-15T09:00:00.000Z";
@@ -2919,7 +2932,7 @@ function LocalizedConversationDetailPage({ locale, conversation }: { locale: Tra
             </Link>
           </div>
           <p id="question-author" className="mt-4 text-sm font-semibold text-rose-50">
-            {conversation.author} · {conversation.badge} · {conversation.viewsToday} {copy.views}
+            {conversation.author} · {conversation.badge} · {viewsToday} {copy.views}
           </p>
         </div>
       </section>

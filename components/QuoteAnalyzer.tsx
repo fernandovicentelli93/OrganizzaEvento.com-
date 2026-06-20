@@ -15,6 +15,13 @@ import {
 import { analyzeQuoteQuality, type QuoteScoreResult } from "@/lib/quoteScoring";
 import { localizedStaticPath } from "@/lib/i18n-basic";
 import { redactQuoteText } from "@/lib/redaction-engine";
+import {
+  VIBES_SUPPLIER_CATEGORIES,
+  supplierCategoryLabel,
+  supplierSearchCopy,
+  supplierSubcategoryLabel,
+  type VibesSupplierCard
+} from "@/lib/vibes-suppliers";
 
 type QuoteAnalyzerLocale = "it" | "en" | "es" | "fr";
 
@@ -1198,6 +1205,28 @@ const serviceTopicMap: Partial<Record<QuoteServiceType, TopicKey>> = {
   open_bar: "openBar"
 };
 
+const quoteSupplierCategoryMap: Partial<Record<QuoteServiceType, string>> = {
+  dj: "musica",
+  band: "musica",
+  fotografo: "fotografi-e-videomaker",
+  catering: "catering-e-gastronomia",
+  location: "location",
+  team_building: "event-planner",
+  evento_aziendale: "event-planner",
+  fiori: "fioristi-allestimenti-floreali-e-verde",
+  open_bar: "catering-e-gastronomia"
+};
+
+const topicSupplierCategoryMap: Partial<Record<TopicKey, string>> = {
+  music: "musica",
+  catering: "catering-e-gastronomia",
+  location: "location",
+  photoVideo: "fotografi-e-videomaker",
+  flowers: "fioristi-allestimenti-floreali-e-verde",
+  openBar: "catering-e-gastronomia",
+  corporate: "event-planner"
+};
+
 function detectTopic(source: string, preferredService: QuoteServiceType) {
   const preferredKey = preferredService ? serviceTopicMap[preferredService] : undefined;
   const normalized = normalize(source);
@@ -1216,6 +1245,236 @@ function detectTopic(source: string, preferredService: QuoteServiceType) {
   });
   scores.sort((a, b) => b.score - a.score);
   return scores[0]?.score ? scores[0].topic : generalTopic;
+}
+
+type QuoteSupplierStripProps = {
+  active: boolean;
+  locale: QuoteAnalyzerLocale;
+  serviceType: QuoteServiceType;
+  topicKey: TopicKey;
+  topicLabel: string;
+  serviceLabel: string;
+  city: string;
+  province: string;
+  region: string;
+  eventLabel: string;
+};
+
+type QuoteSupplierSearchResponse = {
+  ok: boolean;
+  results?: VibesSupplierCard[];
+};
+
+function quoteSupplierStripCopy(locale: QuoteAnalyzerLocale) {
+  if (locale === "en") {
+    return {
+      title: "Italian suppliers related to this quote",
+      text: "Suggested from Vibes Planner by service, area and the quote context. Premium profiles appear first, then standard showcases.",
+      count: "suppliers",
+      source: "Vibes Planner showcases",
+      nationwide: "Works across Italy",
+      near: "km from you",
+      fallbackArea: "Italy"
+    };
+  }
+  if (locale === "es") {
+    return {
+      title: "Proveedores italianos relacionados con este presupuesto",
+      text: "Sugeridos desde Vibes Planner por servicio, zona y contexto del presupuesto. Primero perfiles Premium, luego vitrinas base.",
+      count: "proveedores",
+      source: "Vitrinas Vibes Planner",
+      nationwide: "Trabaja en toda Italia",
+      near: "km de ti",
+      fallbackArea: "Italia"
+    };
+  }
+  if (locale === "fr") {
+    return {
+      title: "Prestataires italiens liés à ce devis",
+      text: "Suggérés depuis Vibes Planner selon le service, la zone et le contexte du devis. Les profils Premium passent d'abord, puis les vitrines standard.",
+      count: "prestataires",
+      source: "Vitrines Vibes Planner",
+      nationwide: "Travaille dans toute l'Italie",
+      near: "km de vous",
+      fallbackArea: "Italie"
+    };
+  }
+  return {
+    title: "Fornitori Vibes coerenti con questo preventivo",
+    text: "Li selezioniamo in base a servizio, zona e contesto del preventivo. Prima i profili Premium, poi le vetrine base.",
+    count: "fornitori",
+    source: "Vetrine Vibes Planner",
+    nationwide: "Lavora in tutta Italia",
+    near: "km da te",
+    fallbackArea: "Italia"
+  };
+}
+
+function quoteSupplierCategory(serviceType: QuoteServiceType, topicKey: TopicKey) {
+  return quoteSupplierCategoryMap[serviceType] ?? topicSupplierCategoryMap[topicKey] ?? "";
+}
+
+function quoteSupplierCategoryLabel(supplier: VibesSupplierCard, locale: QuoteAnalyzerLocale) {
+  const category = VIBES_SUPPLIER_CATEGORIES.find((item) => item.slug === supplier.categorySlug);
+  return category ? supplierCategoryLabel(category, locale) : supplier.category;
+}
+
+function quoteSupplierPreview(supplier: VibesSupplierCard, locale: QuoteAnalyzerLocale) {
+  const category = quoteSupplierCategoryLabel(supplier, locale);
+  const services = supplier.services
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((service) => supplierSubcategoryLabel(service, locale));
+  const serviceText = services.length ? services.join(", ") : category;
+  const place = supplier.location || (locale === "en" ? "Italy" : locale === "fr" ? "Italie" : "Italia");
+
+  if (locale === "en") return `Vibes Planner profile in ${place}, useful for comparing ${serviceText}.`;
+  if (locale === "es") return `Vitrina Vibes Planner en ${place}, útil para comparar ${serviceText}.`;
+  if (locale === "fr") return `Vitrine Vibes Planner à ${place}, utile pour comparer ${serviceText}.`;
+  return `Vetrina Vibes Planner a ${place}, utile per confrontare ${serviceText}.`;
+}
+
+function quoteSupplierDistanceLabel(supplier: VibesSupplierCard, locale: QuoteAnalyzerLocale) {
+  const copy = quoteSupplierStripCopy(locale);
+  if (typeof supplier.distanceKm === "number") {
+    return `${Math.max(1, Math.round(supplier.distanceKm))} ${copy.near}`;
+  }
+  if (supplier.serviceArea === "italy") return copy.nationwide;
+  return supplier.location || copy.fallbackArea;
+}
+
+function QuoteSupplierStrip({
+  active,
+  locale,
+  serviceType,
+  topicKey,
+  topicLabel,
+  serviceLabel,
+  city,
+  province,
+  region,
+  eventLabel
+}: QuoteSupplierStripProps) {
+  const copy = quoteSupplierStripCopy(locale);
+  const searchCopy = supplierSearchCopy(locale);
+  const [suppliers, setSuppliers] = useState<VibesSupplierCard[]>([]);
+
+  useEffect(() => {
+    if (!active) {
+      setSuppliers([]);
+      return;
+    }
+
+    let cancelled = false;
+    const category = quoteSupplierCategory(serviceType, topicKey);
+    const area = province || city || region;
+    const query = [serviceLabel, topicLabel, city, region, eventLabel].filter(Boolean).join(" ");
+
+    async function load(coordinates?: { lat: number; lng: number }) {
+      const params = new URLSearchParams();
+      params.set("locale", locale);
+      if (query) params.set("query", query);
+      if (category) params.set("category", category);
+      if (area) params.set("province", area);
+      if (eventLabel) params.set("eventType", eventLabel);
+      if (coordinates) {
+        params.set("lat", coordinates.lat.toFixed(5));
+        params.set("lng", coordinates.lng.toFixed(5));
+      }
+
+      try {
+        const response = await fetch(`/api/vibes-suppliers/search?${params.toString()}`, {
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+            "Cache-Control": "no-cache"
+          }
+        });
+        const data = (await response.json().catch(() => null)) as QuoteSupplierSearchResponse | null;
+        if (!cancelled && response.ok && data?.ok === true) {
+          setSuppliers((data.results ?? []).slice(0, 100));
+        }
+      } catch {
+        if (!cancelled) setSuppliers([]);
+      }
+    }
+
+    void load();
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (cancelled) return;
+          void load({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        () => undefined,
+        {
+          enableHighAccuracy: false,
+          maximumAge: 30 * 60 * 1000,
+          timeout: 6000
+        }
+      );
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [active, city, eventLabel, locale, province, region, serviceLabel, serviceType, topicKey, topicLabel]);
+
+  if (!active || !suppliers.length) return null;
+
+  return (
+    <section className="rounded-md border border-violet-cta/20 bg-white p-4 shadow-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.source}</p>
+          <h2 className="mt-2 text-base font-semibold text-ink">{copy.title}</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">{copy.text}</p>
+        </div>
+        <p className="inline-flex w-fit rounded-md bg-cream px-3 py-2 text-xs font-semibold text-muted">
+          {suppliers.length} {copy.count}
+        </p>
+      </div>
+      <div className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
+        {suppliers.map((supplier) => (
+          <article key={supplier.id} className="flex w-[17.5rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm">
+            <div className="relative h-36 bg-petal">
+              {supplier.imageUrl ? (
+                <img src={supplier.imageUrl} alt={supplier.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-muted">Vibes Planner</div>
+              )}
+              {supplier.premium ? (
+                <span className="absolute left-2 top-2 rounded-md bg-[#c03aa0] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-white">
+                  Premium Vibes Club
+                </span>
+              ) : null}
+            </div>
+            <div className="flex flex-1 flex-col p-3">
+              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">{quoteSupplierCategoryLabel(supplier, locale)}</p>
+              <h3 className="mt-2 line-clamp-2 min-h-[2.55rem] text-sm font-semibold leading-snug text-ink">{supplier.name}</h3>
+              <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-xs leading-5 text-muted">{quoteSupplierPreview(supplier, locale)}</p>
+              <p className="mt-3 truncate rounded-md bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted">
+                {quoteSupplierDistanceLabel(supplier, locale)}
+              </p>
+              <a
+                href={supplier.vibesUrl}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                className="focus-ring mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-ink px-3 py-2 text-xs font-semibold text-white transition hover:bg-violet-cta"
+              >
+                <img src="/partners/vibes-planner/logo.jpg" alt="" className="h-5 w-5 rounded bg-white object-cover" />
+                {searchCopy.external}
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function pickUnique(items: string[]) {
@@ -1553,7 +1812,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   const [selectedSpecifics, setSelectedSpecifics] = useState<string[]>([]);
   const [files, setFiles] = useState<UploadedQuoteFile[]>([]);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [ocrStatus, setOcrStatus] = useState<"idle" | "reading" | "ready" | "failed">("idle");
+  const [, setOcrStatus] = useState<"idle" | "reading" | "ready" | "failed">("idle");
   const [aiStatus, setAiStatus] = useState<"idle" | "loading" | "ready" | "unavailable" | "error">("idle");
   const [aiAnalysis, setAiAnalysis] = useState<AiQuoteAnalysisState | null>(null);
   const lastAiSignature = useRef("");
@@ -1873,30 +2132,12 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
     </label>
   );
 
-  const imageReadStatus =
-    files.some((file) => file.type === "image") || imageText ? (
-      <div className="mt-4 rounded-lg border border-line bg-white p-4">
-        <p className="text-sm font-semibold text-ink">{copy.imageTextLabel}</p>
-        {ocrStatus === "reading" ? <p className="mt-2 text-sm leading-6 text-muted">{copy.ocrReading}</p> : null}
-        {ocrStatus === "ready" ? <p className="mt-2 text-sm leading-6 text-violet-cta">{copy.ocrReady}</p> : null}
-        {ocrStatus === "failed" ? <p className="mt-2 text-sm leading-6 text-muted">{copy.ocrFailed}</p> : null}
-        {imageText ? (
-          <pre className="mt-3 max-h-44 overflow-auto whitespace-pre-wrap rounded-md border border-line bg-cream p-3 text-xs leading-6 text-muted">
-            {imageText}
-          </pre>
-        ) : ocrStatus === "idle" ? (
-          <p className="mt-2 text-sm leading-6 text-muted">{copy.imageTextPlaceholder}</p>
-        ) : null}
-      </div>
-    ) : null;
-
   return (
     <>
       {aiStatus === "loading" ? <AiAnalysisLoadingOverlay copy={copy} /> : null}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(460px,0.98fr)]">
       <section className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
         {uploadControl}
-        {imageReadStatus}
 
         <label className="mt-4 block">
           <span className="block text-sm font-semibold text-ink">{copy.inputLabel}</span>
@@ -1980,14 +2221,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
           </div>
         ) : null}
 
-        {redactedText ? (
-          <div className="mt-4">
-            <p className="text-sm font-semibold text-ink">{copy.redactedPreview}</p>
-            <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-line bg-white p-4 text-xs leading-6 text-muted">
-              {redactedText}
-            </pre>
-          </div>
-        ) : null}
       </section>
 
       <section className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
@@ -2040,6 +2273,18 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               </h2>
               <p className="mt-2 text-muted">{displayReport.user_summary}</p>
             </div>
+            <QuoteSupplierStrip
+              active={hasAiReport}
+              locale={locale}
+              serviceType={displayReport.detected_service}
+              topicKey={result.topic.key}
+              topicLabel={result.topic.label[locale]}
+              serviceLabel={detectedServiceLabel}
+              city={city}
+              province={province}
+              region={region}
+              eventLabel={formCopy.eventOptions[eventType]}
+            />
             <div className="rounded-md border border-line bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
               <h2 className="mt-2 text-xl font-semibold text-ink">{result.topic.title[locale]}</h2>
@@ -2071,16 +2316,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                 </VibesSupplierCta>
               </div>
             </div>
-            <div className="rounded-md border border-line bg-white p-4">
-              <h2 className="text-base font-semibold text-ink">{formCopy.protectedTitle}</h2>
-              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                {formCopy.protectedItems.map((item) => (
-                  <li key={item} className="flex min-h-16 items-center rounded-md bg-cream px-4 py-3 text-sm leading-6 text-muted">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
             {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
             <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
               <h2 className="text-base font-semibold text-ink">{copy.detailedReading}</h2>
@@ -2092,18 +2327,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
             <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
             <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
             <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
-            <div className="rounded-md border border-line bg-white p-4">
-              <h2 className="text-base font-semibold text-ink">{formCopy.messageDraftTitle}</h2>
-              <p className="mt-3 rounded-md bg-cream p-4 text-sm leading-7 text-ink">{displayReport.supplier_message_draft}</p>
-            </div>
-            <div className="rounded-md border border-line bg-white p-4">
-              <h2 className="text-base font-semibold text-ink">{formCopy.benchmarkTitle}</h2>
-              <p className="mt-2 text-sm leading-7 text-muted">
-                {displayReport.benchmark_used
-                  ? `${displayReport.benchmark_used.note} ${displayReport.benchmark_used.area ? `Area: ${displayReport.benchmark_used.area}.` : ""}`
-                  : formCopy.noBenchmark}
-              </p>
-            </div>
           </div>
         ) : (
           <AiAnalysisLoadingCard copy={copy} />
@@ -2147,10 +2370,6 @@ function AiAnalysisLoadingPanel({ copy, elevated = false }: { copy: AnalyzerCopy
       </div>
 
       <div className="mt-5 space-y-3">
-        <div className="h-2.5 overflow-hidden rounded-full bg-cream">
-          <div className="quote-analysis-progress h-full rounded-full bg-violet-cta" />
-        </div>
-
         <div className="grid gap-2 sm:grid-cols-3">
           {copy.loadingSteps.map((step, index) => (
             <div key={step} className="rounded-md border border-line bg-cream/70 px-3 py-3 text-left text-xs font-semibold leading-5 text-muted">

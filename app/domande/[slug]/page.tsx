@@ -208,7 +208,7 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
   const location = compactLocation(question.city, question.region);
   const eventDate = formatEventDate(question.eventDate);
   const returnTo = `/domande/${question.slug}`;
-  const viewsToday = dailyConversationViews(question.slug);
+  const viewsToday = dailyConversationViews(question.slug, question.createdAt);
   const followers = conversationFollowers(question.slug);
   const phaseLabel = EVENT_PHASES.find((phase) => phase.value === question.eventPhase)?.label;
   const bestAnswer = question.answers.find((answer) => answer.isBestAnswer);

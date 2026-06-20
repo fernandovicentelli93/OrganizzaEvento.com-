@@ -1,0 +1,2 @@
+Deploy trigger created by Codex on 2026-06-20.
+Purpose: trigger Netlify build after GitHub repository connection.

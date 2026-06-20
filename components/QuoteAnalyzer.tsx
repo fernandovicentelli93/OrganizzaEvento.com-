@@ -2184,7 +2184,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   return (
     <>
       {aiStatus === "loading" ? <AiAnalysisLoadingOverlay copy={copy} /> : null}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(460px,0.98fr)]">
+      <div className="grid gap-6">
       <section className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
         {uploadControl}
 

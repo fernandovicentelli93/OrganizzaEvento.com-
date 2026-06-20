@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /backend
+Disallow: /gestione
+Disallow: /dashboard
+Disallow: /login
+Disallow: /api
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /backend
+Disallow: /gestione
+Disallow: /dashboard
+Disallow: /login
+Disallow: /api
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /backend
+Disallow: /gestione
+Disallow: /dashboard
+Disallow: /login
+Disallow: /api
+
+Sitemap: https://organizzaevento.com/sitemap.xml

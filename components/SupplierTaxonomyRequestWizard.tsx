@@ -558,7 +558,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
           onClick={() => setSelectedSupplier(null)}
         >
           <div
-            className="w-full max-w-3xl overflow-hidden rounded-md border border-line bg-white shadow-soft"
+            className="w-full max-w-xl overflow-hidden rounded-md border border-line bg-white shadow-soft"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-4">
@@ -578,16 +578,39 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                 x
               </button>
             </div>
-            <div className="border-y border-line bg-cream">
-              <iframe
-                src={selectedSupplier.url ?? VIBES_PLANNER_CLIENT_REQUEST_URL}
-                title={`Vetrina Vibes Planner - ${selectedSupplier.name}`}
-                className="h-[58vh] w-full bg-white"
-                loading="lazy"
-              />
+            <div className="border-y border-line bg-cream p-5 sm:p-6">
+              <div className="grid gap-4 sm:grid-cols-[160px_1fr]">
+                <div className="relative h-36 overflow-hidden rounded-md bg-petal">
+                  {selectedSupplier.imageUrl ? (
+                    <img
+                      src={selectedSupplier.imageUrl}
+                      alt={selectedSupplier.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-violet-cta">
+                      Vibes Planner
+                    </div>
+                  )}
+                  <span className="absolute right-2 top-2 rounded-md bg-ink px-2 py-1 text-xs font-bold text-white">
+                    {selectedSupplier.score}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-ink">{selectedSupplier.meta}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">{selectedSupplier.note}</p>
+                  {selectedSupplier.premium ? (
+                    <span className="mt-3 inline-flex rounded-md bg-violet-cta px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
+                      Premium Vibes Club
+                    </span>
+                  ) : null}
+                </div>
+              </div>
             </div>
             <p className="px-5 pt-4 text-sm leading-7 text-muted sm:px-6">
-              Se la vetrina non viene caricata dentro il popup, aprila direttamente su Vibes Planner.
+              Per evitare blocchi del banner cookie esterno, la vetrina si apre direttamente su Vibes Planner.
             </p>
             <a
               href={selectedSupplier.url ?? VIBES_PLANNER_CLIENT_REQUEST_URL}

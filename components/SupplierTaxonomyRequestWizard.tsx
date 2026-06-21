@@ -511,7 +511,6 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
 
   function startFromCategory(categorySlug: string) {
     const firstId = steps[0]?.id ?? 1;
-    setScrollToStepId(firstId);
     setSteps((current) => {
       const [first, ...rest] = current;
       return [{ ...createStep(first?.id ?? firstId, categorySlug) }, ...rest.filter((step) => step.categorySlug !== categorySlug)];

@@ -743,7 +743,7 @@ function fallbackResults(payload: SearchPayload) {
     const haystack = normalizeSearchText([supplier.name, supplier.category, supplier.location, ...supplier.services].join(" "));
     return normalized.split(" ").filter(Boolean).some((token) => haystack.includes(token)) || haystack.includes(normalized);
   });
-  const source = filtered.length ? filtered : fallbackSuppliers;
+  const source = filtered.length ? filtered : payload.category ? fallbackSuppliers.filter((supplier) => supplier.categorySlug === payload.category) : fallbackSuppliers;
   return source.map((supplier) => ({
     ...supplier,
     serviceAreaLabel: areaLabel(supplier.serviceArea, payload.locale),

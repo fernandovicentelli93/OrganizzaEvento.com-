@@ -16,7 +16,7 @@ const preferredCategoryOrder = ["location", "musica", "event-planner", "catering
 const starterCategorySlugs = ["location", "musica", "event-planner", "catering-e-gastronomia", "fotografi-e-videomaker"];
 const maxVisibleServiceOptions = 8;
 const maxSelectedServices = 6;
-const maxVisibleSubcategories = 10;
+const vibesLogoPath = "/partners/vibes-planner/logo.jpg";
 
 type EventBrief = {
   eventType: string;
@@ -180,6 +180,54 @@ function liveSupplierToSeed(supplier: VibesSupplierCard, index: number, isLocati
   };
 }
 
+const CATEGORY_MATCH_KEYWORDS: Record<string, string[]> = {
+  location: ["location", "villa", "dimora", "sala", "ristorante", "agriturismo", "hotel", "spazio", "terrazza", "giardino"],
+  musica: ["musica", "dj", "band", "live", "pianista", "violinista", "sax", "sassofonista", "cantante", "orchestra"],
+  intrattenimento: ["intrattenimento", "animazione", "show", "spettacolo", "magia", "performance", "artista", "cabaret", "ballo"],
+  "catering-e-gastronomia": ["catering", "menu", "chef", "banqueting", "bar", "cocktail", "open bar", "food", "buffet", "torta"],
+  "event-planner": ["planner", "wedding planner", "event planner", "coordinamento", "regia", "organizzazione"],
+  "fotografi-e-videomaker": ["foto", "fotograf", "video", "videomaker", "riprese", "album", "drone", "studio fotografico", "photo"],
+  "fioristi-allestimenti-floreali-e-verde": ["fiori", "floreale", "florist", "bouquet", "verde", "allestimento floreale"],
+  "tecnici-e-allestitori": ["tecnico", "allestimento", "audio", "luci", "palco", "impianto", "struttura", "ledwall"]
+};
+
+function normalizeMatchText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function supplierMatchesRequestedCategory(supplier: VibesSupplierCard, category: VibesTaxonomyCategory, step: SupplierStep) {
+  const haystack = normalizeMatchText(
+    [
+      supplier.name,
+      supplier.location,
+      supplier.serviceAreaLabel,
+      ...(supplier.services ?? [])
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+  const strictTerms = uniqueValues([
+    category.slug,
+    category.label,
+    ...(category.aliases ?? []),
+    ...step.subcategories,
+    ...step.services,
+    ...step.styles,
+    ...step.formations,
+    ...step.talents,
+    ...step.genres,
+    ...(CATEGORY_MATCH_KEYWORDS[category.slug] ?? [])
+  ]).map(normalizeMatchText);
+
+  return strictTerms.some((term) => term.length >= 3 && haystack.includes(term));
+}
+
 function buildLiveSupplierQuery(step: SupplierStep, category: VibesTaxonomyCategory, eventBrief: EventBrief) {
   const details =
     category.slug === "musica"
@@ -193,14 +241,23 @@ function buildLiveSupplierQuery(step: SupplierStep, category: VibesTaxonomyCateg
     eventBrief.address,
     eventBrief.province,
     eventBrief.guestCount ? `${eventBrief.guestCount} invitati` : "",
-    ...details,
-    step.notes
+    ...details
   ]
     .filter(Boolean)
     .join(" ");
 }
 
-function SupplierCard({ supplier, recommended, isLocation }: { supplier: SupplierSeed; recommended: boolean; isLocation: boolean }) {
+function SupplierCard({
+  supplier,
+  recommended,
+  isLocation,
+  onOpen
+}: {
+  supplier: SupplierSeed;
+  recommended: boolean;
+  isLocation: boolean;
+  onOpen: (supplier: SupplierSeed) => void;
+}) {
   return (
     <article
       className={`flex min-h-[360px] min-w-[272px] snap-start flex-col rounded-md border bg-white p-4 shadow-sm sm:min-w-[292px] xl:min-w-[31%] ${
@@ -228,16 +285,16 @@ function SupplierCard({ supplier, recommended, isLocation }: { supplier: Supplie
         <p className="mt-2 text-[11px] font-semibold text-muted">
           {isLocation ? "Voto basato su distanza, categoria e richiesta." : "Voto basato su match AI e copertura del servizio."}
         </p>
-        <a
-          href={supplier.url ?? VIBES_PLANNER_CLIENT_REQUEST_URL}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
+        <button
+          type="button"
+          onClick={() => onOpen(supplier)}
           className={`mt-auto inline-flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-bold transition ${
             recommended ? "bg-violet-cta text-white hover:bg-violet-hover" : "border border-line bg-cream text-ink hover:bg-petal"
           }`}
         >
+          <img src={vibesLogoPath} alt="" className="mr-2 h-5 w-5 rounded object-cover" loading="lazy" decoding="async" />
           Preventivo gratuito
-        </a>
+        </button>
       </div>
     </article>
   );
@@ -296,6 +353,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
   const [steps, setSteps] = useState<SupplierStep[]>([createStep(1, normalizedInitialCategorySlug)]);
   const [liveSearches, setLiveSearches] = useState<Record<number, LiveSearchState>>({});
   const [showBudgetWarning, setShowBudgetWarning] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierSeed | null>(null);
 
   useEffect(() => {
     setSteps([createStep(1, normalizedInitialCategorySlug)]);
@@ -319,7 +377,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
           subcategories: step.subcategories,
           label: step.categoryBudget,
           amount,
-          resultCount: liveSearches[step.id]?.results.length ?? 0
+          resultCount: (liveSearches[step.id]?.results ?? []).filter((supplier) => supplierMatchesRequestedCategory(supplier, category, step)).length
         };
       }),
     [eventBrief.guestCount, liveSearches, steps]
@@ -458,6 +516,43 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
         </div>
       ) : null}
 
+      {selectedSupplier ? (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/50 p-4">
+          <div className="w-full max-w-lg rounded-md border border-line bg-white p-5 shadow-soft sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <img src={vibesLogoPath} alt="" className="h-10 w-10 rounded-md object-cover" loading="lazy" decoding="async" />
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Vetrina Vibes Planner</p>
+                  <h3 className="mt-1 text-xl font-semibold leading-tight text-ink">{selectedSupplier.name}</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedSupplier(null)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-cream text-lg font-bold text-ink transition hover:bg-petal"
+                aria-label="Chiudi popup fornitore"
+              >
+                x
+              </button>
+            </div>
+            <p className="mt-4 text-sm leading-7 text-muted">
+              Apri la vetrina su Vibes Planner per controllare dettagli, disponibilita e inviare una richiesta di
+              preventivo gratuita al fornitore.
+            </p>
+            <a
+              href={selectedSupplier.url ?? VIBES_PLANNER_CLIENT_REQUEST_URL}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-hover"
+            >
+              <img src={vibesLogoPath} alt="" className="mr-2 h-5 w-5 rounded object-cover" loading="lazy" decoding="async" />
+              Apri vetrina e richiedi preventivo
+            </a>
+          </div>
+        </div>
+      ) : null}
+
       <div className="border-b border-line bg-petal/70 px-5 py-6 sm:px-7 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-cta">Booking fornitori</p>
         <div className="mt-4 grid gap-5 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
@@ -467,7 +562,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:text-base">
               Scegli da quale categoria partire. La ricerca si attiva dopo categoria e sottocategoria, poi si affina con
-              via, invitati, budget del singolo fornitore, servizi e note.
+              via, invitati, budget del singolo fornitore e servizi richiesti.
             </p>
           </div>
 
@@ -632,14 +727,14 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
             const durationOptions = optionList(category, "durata", durationFallback);
             const styleOptions = optionList(category, "stile", []);
             const serviceOptions = serviceOptionsForCategory(category);
-            const visibleSubcategories = step.showMoreSubcategories ? category.subcategories : category.subcategories.slice(0, maxVisibleSubcategories);
             const visibleGenres = step.showMoreGenres ? [...mainMusicGenres, ...moreMusicGenres] : mainMusicGenres;
             const detailsSummary = isMusic
               ? [...step.formations.map((item) => `Formazione: ${item}`), ...step.talents, ...step.genres]
               : step.services;
             const liveSearch = liveSearches[step.id] ?? { status: "idle", results: [] };
             const isSearchReady = Boolean(step.categorySlug && step.subcategories.length);
-            const suppliers = liveSearch.results.map((supplier, supplierIndex) => liveSupplierToSeed(supplier, supplierIndex, category.slug === "location"));
+            const categorySafeResults = liveSearch.results.filter((supplier) => supplierMatchesRequestedCategory(supplier, category, step));
+            const suppliers = categorySafeResults.map((supplier, supplierIndex) => liveSupplierToSeed(supplier, supplierIndex, category.slug === "location"));
             const hasLiveSuppliers = suppliers.length > 0;
             const isSearching = liveSearch.status === "loading";
 
@@ -719,47 +814,45 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-semibold text-ink">Sottocategorie</p>
-                      <p className="mt-1 text-sm leading-6 text-muted">Puoi selezionarne più di una per allargare la ricerca.</p>
+                      <p className="mt-1 text-sm leading-6 text-muted">Scegli dal menu. Puoi aggiungerne più di una senza riempire la pagina.</p>
                     </div>
                     <span className="rounded-md bg-white px-3 py-1 text-xs font-semibold text-violet-cta">
                       {step.subcategories.length ? `${step.subcategories.length} selezionate` : "obbligatorio"}
                     </span>
                   </div>
-                  <div className="mt-3">
-                    <ChipGroup
-                      items={visibleSubcategories}
-                      selected={step.subcategories}
-                      onToggle={(item) => updateStep(step.id, { subcategories: toggleValue(item, step.subcategories) })}
-                    />
-                  </div>
-                  {category.subcategories.length > maxVisibleSubcategories ? (
-                    <button
-                      type="button"
-                      onClick={() => updateStep(step.id, { showMoreSubcategories: !step.showMoreSubcategories })}
-                      className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-xs font-bold text-violet-cta transition hover:bg-petal"
-                    >
-                      {step.showMoreSubcategories ? "Mostra meno" : "+ Vedi tutte le sottocategorie"}
-                    </button>
-                  ) : null}
-                </div>
-
-                <div className="mt-5 grid gap-3 rounded-md border border-line bg-cream p-4 md:grid-cols-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Evento</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{eventBrief.eventType || "Da definire"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Via o zona</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{eventBrief.address || eventBrief.province || "Da completare"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Invitati</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{eventBrief.guestCount ? `${eventBrief.guestCount} persone` : "Da indicare"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Budget fornitore</p>
-                    <p className="mt-1 text-sm font-semibold text-ink">{step.categoryBudget || "Da definire"}</p>
-                  </div>
+                  <select
+                    value=""
+                    onChange={(event) => {
+                      if (!event.target.value) return;
+                      updateStep(step.id, { subcategories: toggleValue(event.target.value, step.subcategories) });
+                    }}
+                    className="mt-3 w-full rounded-md border border-line bg-white px-4 py-3 text-sm font-semibold text-ink outline-none transition focus:border-violet-cta focus:ring-4 focus:ring-blush"
+                  >
+                    <option value="">Aggiungi sottocategoria</option>
+                    {category.subcategories.map((item) => (
+                      <option key={item} value={item}>
+                        {step.subcategories.includes(item) ? `${item} - selezionata` : item}
+                      </option>
+                    ))}
+                  </select>
+                  {step.subcategories.length ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {step.subcategories.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => updateStep(step.id, { subcategories: toggleValue(item, step.subcategories) })}
+                          className="rounded-md border border-violet-cta bg-violet-cta px-3 py-2 text-xs font-bold text-white transition hover:bg-violet-hover"
+                        >
+                          {item} x
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-3 rounded-md border border-dashed border-line bg-white p-3 text-sm leading-6 text-muted">
+                      Dopo la prima sottocategoria partono i risultati. Aggiungine altre solo se vuoi allargare la ricerca.
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-5 rounded-md border border-line bg-white p-4">
@@ -817,17 +910,6 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   </div>
                 ) : null}
 
-                <label className="mt-5 block">
-                  <span className="text-sm font-semibold text-ink">Note per questa categoria</span>
-                  <textarea
-                    value={step.notes}
-                    onChange={(event) => updateStep(step.id, { notes: event.target.value })}
-                    rows={3}
-                    className="mt-2 w-full rounded-md border border-line bg-cream px-4 py-3 text-sm text-ink outline-none transition focus:border-violet-cta focus:ring-4 focus:ring-blush"
-                    placeholder={`Es. ${category.aiExamples[0] ?? "Scrivi cosa deve sapere il fornitore..."}`}
-                  />
-                </label>
-
                 <div className="mt-5 rounded-md border border-line bg-cream p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
@@ -858,7 +940,13 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   ) : suppliers.length ? (
                     <div className="mt-4 flex snap-x gap-3 overflow-x-auto pb-3">
                       {suppliers.map((supplier, supplierIndex) => (
-                        <SupplierCard key={`${supplier.name}-${supplierIndex}`} supplier={supplier} recommended={supplierIndex === 0} isLocation={category.slug === "location"} />
+                        <SupplierCard
+                          key={`${supplier.name}-${supplierIndex}`}
+                          supplier={supplier}
+                          recommended={supplierIndex === 0}
+                          isLocation={category.slug === "location"}
+                          onOpen={setSelectedSupplier}
+                        />
                       ))}
                     </div>
                   ) : (
@@ -890,8 +978,8 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
           </div>
         </div>
 
-        <aside className="border-t border-line bg-white p-4 sm:p-6 lg:border-l lg:border-t-0 lg:p-6">
-          <div className="lg:sticky lg:top-20">
+        <aside className="border-t border-line bg-white p-4 sm:p-6 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto lg:border-l lg:border-t-0 lg:p-6">
+          <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">Resoconto budget</p>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{steps.length} categorie in lavorazione</h3>
             <p className="mt-3 text-sm leading-6 text-muted">

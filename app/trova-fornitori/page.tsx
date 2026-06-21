@@ -14,10 +14,22 @@ export const metadata: Metadata = {
 };
 
 const quickBenefits = [
-  "Parti dal fornitore che ti serve davvero",
-  "Zona, invitati e budget restano sempre attivi",
-  "Puoi aggiungere piu categorie senza riscrivere tutto",
-  "I fornitori suggeriti arrivano da vetrine Vibes Planner"
+  {
+    title: "Parti dal fornitore che ti serve davvero",
+    text: "Non sei obbligato a iniziare dalla location: puoi partire da musica, catering, foto, fiori o qualunque servizio ti serva."
+  },
+  {
+    title: "Zona, invitati e budget restano attivi",
+    text: "Li scrivi una volta sola e restano dentro ogni ricerca, così i risultati sono più coerenti."
+  },
+  {
+    title: "Aggiungi più categorie senza rifare tutto",
+    text: "Ogni fornitore ha budget e sottocategorie proprie, ma il contesto evento resta lo stesso."
+  },
+  {
+    title: "Vetrine Vibes Planner, non risultati generici",
+    text: "Le schede suggerite vengono filtrate per categoria e coerenza prima di essere mostrate."
+  }
 ];
 
 const supplierBubbles = [
@@ -127,42 +139,52 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
               </Link>
             </div>
 
-            <div className="mt-9">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Parti dal tipo di fornitore</p>
-              <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 xl:grid-cols-8">
-                {supplierBubbles.map((item) => {
-                  const isActive = selectedCategorySlug === item.slug;
-                  return (
-                    <Link
-                      key={item.slug}
-                      href={`/trova-fornitori?categoria=${item.slug}#modulo-fornitori`}
-                      className="group text-center"
-                      aria-label={`Cerca fornitori: ${item.label}`}
-                    >
-                      <span
-                        className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full border bg-gradient-to-br text-lg font-black tracking-[0.05em] shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
-                          isActive ? "border-violet-cta ring-4 ring-blush" : "border-line"
-                        } ${item.tone}`}
-                      >
-                        <span className="rounded-full bg-white/85 px-3 py-2 text-ink shadow-sm">{item.short}</span>
-                      </span>
-                      <span className="mt-3 block text-sm font-bold leading-snug text-ink group-hover:text-violet-cta">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
           </div>
 
           <div className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
             <div className="grid gap-3 sm:grid-cols-2">
-              {quickBenefits.map((item) => (
-                <div key={item} className="rounded-md border border-line bg-cream p-4">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-violet-cta text-[11px] font-bold text-white">OK</span>
-                  <p className="mt-3 text-sm font-bold leading-6 text-ink">{item}</p>
+              {quickBenefits.map((item, index) => (
+                <div key={item.title} className="rounded-md border border-line bg-cream p-4">
+                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-violet-cta">0{index + 1}</span>
+                  <h2 className="mt-3 text-base font-semibold leading-6 text-ink">{item.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-muted">{item.text}</p>
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-md border border-line bg-white p-4 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Fornitori prenotabili</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Scegli chi vuoi trovare per il tuo evento.</h2>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-muted">
+              Ogni cerchio apre il modulo gia impostato sulla categoria giusta. Poi puoi aggiungere gli altri fornitori.
+            </p>
+          </div>
+          <div className="-mx-4 mt-6 flex gap-5 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
+            {supplierBubbles.map((item) => {
+              const isActive = selectedCategorySlug === item.slug;
+              return (
+                <Link
+                  key={item.slug}
+                  href={`/trova-fornitori?categoria=${item.slug}#modulo-fornitori`}
+                  className="group min-w-[104px] text-center sm:min-w-[118px]"
+                  aria-label={`Cerca fornitori: ${item.label}`}
+                >
+                  <span
+                    className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full border bg-gradient-to-br text-lg font-black tracking-[0.05em] shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
+                      isActive ? "border-violet-cta ring-4 ring-blush" : "border-line"
+                    } ${item.tone}`}
+                  >
+                    <span className="rounded-full bg-white/85 px-3 py-2 text-ink shadow-sm">{item.short}</span>
+                  </span>
+                  <span className="mt-3 block min-h-[2.4rem] text-sm font-bold leading-tight text-ink group-hover:text-violet-cta">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -183,7 +205,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
           <div>
             <SectionEyebrow>Modulo completo</SectionEyebrow>
             <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-              Prenota piu fornitori partendo da un brief unico.
+              Prenota più fornitori partendo da un brief unico.
             </h2>
           </div>
           <p className="text-base leading-8 text-muted">

@@ -91,6 +91,54 @@ function compactDateTime(value: Date | null | undefined) {
   return value ? formatDate(value) : "Mai registrata";
 }
 
+function normalized(value: string | null | undefined) {
+  return (value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function supplierProfileCompletion(account: {
+  businessName: string | null;
+  supplierCategory: string | null;
+  supplierServices: string | null;
+  serviceAreas: string | null;
+  eventTypesServed: string | null;
+  city: string | null;
+  region: string | null;
+  bio: string | null;
+  photoUrl: string | null;
+}) {
+  const checks = [
+    account.businessName,
+    account.supplierCategory,
+    account.supplierServices,
+    account.serviceAreas,
+    splitStoredList(account.eventTypesServed).length ? "eventi" : "",
+    account.city,
+    account.region,
+    account.bio,
+    account.photoUrl
+  ];
+
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+function matchedLeadCount(
+  account: { supplierCategory: string | null; supplierServices: string | null },
+  requests: Array<{ supplierTypes: string }>
+) {
+  const category = normalized(account.supplierCategory);
+  const services = normalized(account.supplierServices);
+  if (!category && !services) return 0;
+
+  return requests.filter((request) => {
+    const requestText = normalized(request.supplierTypes);
+    return (category && requestText.includes(category)) || (services && services.split(/[|,]/).some((item) => item && requestText.includes(item.trim())));
+  }).length;
+}
+
 function AdminGate({ error }: { error?: string }) {
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-xl items-center px-4 py-16">
@@ -292,6 +340,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
   const quoteSeoExamples = getAllQuoteAnalysisPages("it")
     .filter((page) => page.indexable && page.priorityTier === "P0")
     .slice(0, 8);
+  const suppliersInPlatform = accounts.filter((account) => account.role === "supplier");
   const uniqueVisitorsSelectedDay = selectedDayUniqueVisitors.length;
   const uniqueSessionsSelectedDay = selectedDayUniqueSessions.length;
   const registeredVisitorsSelectedDay = selectedDayRegisteredVisitors.filter((item) => item.accountId).length;
@@ -464,6 +513,105 @@ export default async function BackendPage({ searchParams }: PageProps) {
             </article>
           ))}
         </div>
+
+        <section className="mt-6 overflow-hidden rounded-[1.1rem] border border-line bg-white">
+          <div className="flex flex-col gap-2 border-b border-line bg-[#FFF8FB] px-4 py-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">Fornitori in piattaforma</p>
+              <h3 className="mt-2 text-xl font-semibold text-ink">Vista CRM fornitori</h3>
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-muted">
+                Schede fornitore registrate, stato vetrina, ultimo accesso e segnali utili per capire chi è pronto a lavorare
+                sulla piattaforma.
+              </p>
+            </div>
+            <TagBadge tone="violet">{suppliersInPlatform.length} fornitori filtrati</TagBadge>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-[1180px] divide-y divide-line text-left text-sm">
+              <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
+                <tr>
+                  <th className="px-3 py-3 font-semibold">#</th>
+                  <th className="px-3 py-3 font-semibold">E-mail</th>
+                  <th className="px-3 py-3 font-semibold">Lead</th>
+                  <th className="px-3 py-3 font-semibold">Ragione sociale / Nome</th>
+                  <th className="px-3 py-3 font-semibold">Telefono</th>
+                  <th className="px-3 py-3 font-semibold">Regione</th>
+                  <th className="px-3 py-3 font-semibold">Provincia / zone</th>
+                  <th className="px-3 py-3 font-semibold">Tipo abbonamento</th>
+                  <th className="px-3 py-3 font-semibold">Stato vetrina</th>
+                  <th className="px-3 py-3 font-semibold">Ultimo login</th>
+                  <th className="px-3 py-3 font-semibold">Data creazione</th>
+                  <th className="px-3 py-3 font-semibold">Stato</th>
+                  <th className="px-3 py-3 font-semibold">Azioni</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line bg-white">
+                {suppliersInPlatform.length ? (
+                  suppliersInPlatform.map((account, index) => {
+                    const completion = supplierProfileCompletion(account);
+                    const leads = matchedLeadCount(account, supplierRequests);
+                    const profileReady = completion >= 70;
+
+                    return (
+                      <tr key={`supplier-crm-${account.id}`} className="align-top">
+                        <td className="px-3 py-3 font-medium text-muted">{index + 1}</td>
+                        <td className="px-3 py-3 text-ink">{account.email}</td>
+                        <td className="px-3 py-3">
+                          <TagBadge tone={leads > 0 ? "green" : "gray"}>{leads}</TagBadge>
+                        </td>
+                        <td className="px-3 py-3">
+                          <p className="font-semibold text-ink">{account.businessName || account.displayName}</p>
+                          <p className="mt-1 text-xs text-muted">{account.displayName}</p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {account.supplierCategory ? <TagBadge tone="violet">{account.supplierCategory}</TagBadge> : null}
+                            {account.profileTag ? <TagBadge>{account.profileTag}</TagBadge> : null}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-muted">Non raccolto</td>
+                        <td className="px-3 py-3 text-muted">{account.region || "-"}</td>
+                        <td className="px-3 py-3 text-muted">{account.serviceAreas || account.city || "-"}</td>
+                        <td className="px-3 py-3">
+                          <TagBadge tone="gray">Base</TagBadge>
+                        </td>
+                        <td className="px-3 py-3">
+                          <TagBadge tone={profileReady ? "green" : "amber"}>
+                            {profileReady ? "Completa" : `Da completare ${completion}%`}
+                          </TagBadge>
+                        </td>
+                        <td className="px-3 py-3 text-muted">{compactDateTime(account.lastLoginAt ?? account.lastSeenAt)}</td>
+                        <td className="px-3 py-3 text-muted">{compactDateTime(account.createdAt)}</td>
+                        <td className="px-3 py-3">
+                          <TagBadge tone={account.status === "active" ? "green" : account.status === "suspended" ? "amber" : "gray"}>
+                            {accountStatusLabels[account.status]}
+                          </TagBadge>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex flex-wrap gap-2">
+                            {(["active", "suspended"] as const).map((status) => (
+                              <form key={status} action={adminUpdateAccountStatus}>
+                                <input type="hidden" name="accountId" value={account.id} />
+                                <input type="hidden" name="status" value={status} />
+                                <button className="focus-ring rounded-md border border-line bg-cream px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-petal">
+                                  {accountStatusLabels[status]}
+                                </button>
+                              </form>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={13} className="px-4 py-8 text-center text-sm text-muted">
+                      Nessun fornitore trovato con questi filtri.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <div className="mt-5 rounded-[1.1rem] border border-amber-200 bg-amber-50 p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">

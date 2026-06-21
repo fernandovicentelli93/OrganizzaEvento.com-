@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const category = await prisma.category.findUnique({ where: { slug } });
-  if (!category) return { title: "Categoría non trovata" };
+  if (!category) return { title: "Categoria non trovata" };
 
   return {
     title: category.name,

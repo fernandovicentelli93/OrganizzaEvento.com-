@@ -557,7 +557,7 @@ async function assessCoverageWithOpenAI(card: VibesSupplierCard, payload: Search
                   "Rispondi solo JSON: {\"compatible\": boolean, \"serviceArea\": \"italy\"|\"unknown\"}. " +
                   "compatible deve essere true solo se il testo indica chiaramente copertura in tutta Italia o sul territorio nazionale. " +
                   "Se e ambiguo, compatible=false.\n\n" +
-                  `Provincia richiesta: ${payload.province}\nCategoría: ${card.category}\nFornitore: ${card.name}\nSede card: ${card.location}\nTesto scheda:\n${profileText.slice(0, 5000)}`
+                  `Provincia richiesta: ${payload.province}\nCategoria: ${card.category}\nFornitore: ${card.name}\nSede card: ${card.location}\nTesto scheda:\n${profileText.slice(0, 5000)}`
               }
             ]
           }

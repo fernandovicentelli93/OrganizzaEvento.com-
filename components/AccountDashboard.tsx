@@ -142,7 +142,7 @@ export function AccountDashboard({ account, role, questions, answers, profileSta
                     <dd className="mt-1 text-muted">{account.businessName || "Da completare"}</dd>
                   </div>
                   <div>
-                    <dt className="font-semibold text-ink">Categoría</dt>
+                    <dt className="font-semibold text-ink">Categoria</dt>
                     <dd className="mt-1 text-muted">{account.supplierCategory || "Da completare"}</dd>
                   </div>
                   <div>
@@ -248,7 +248,7 @@ export function AccountDashboard({ account, role, questions, answers, profileSta
                     </label>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label>
-                        <span className="text-sm font-semibold text-ink">Categoría principale</span>
+                        <span className="text-sm font-semibold text-ink">Categoria principale</span>
                         <select
                           name="supplierCategory"
                           defaultValue={account.supplierCategory ?? ""}

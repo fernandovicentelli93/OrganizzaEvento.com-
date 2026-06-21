@@ -41,7 +41,7 @@ const supplierConversations = [
 const supplierSteps = [
   {
     title: "Completa la scheda",
-    text: "Categoría, zone coperte, servizi, fascia indicativa, tipi evento e piccola bio. Niente recapiti pubblici."
+    text: "Categoria, zone coperte, servizi, fascia indicativa, tipi evento e piccola bio. Niente recapiti pubblici."
   },
   {
     title: "Segui le conversazioni giuste",
@@ -59,7 +59,7 @@ const supplierSteps = [
 
 const profileFields = [
   "Nome attività",
-  "Categoría principale",
+  "Categoria principale",
   "Servizi offerti",
   "Tipi di evento seguiti",
   "Città e regione",

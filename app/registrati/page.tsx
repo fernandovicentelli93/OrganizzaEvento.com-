@@ -109,7 +109,7 @@ export default async function RegisterPage({ searchParams }: PageProps) {
                   </option>
                 ))}
               </select>
-              <span className="mt-1 block text-xs leading-5 text-muted">Comparira accanto al tuo nome quando scrivi.</span>
+              <span className="mt-1 block text-xs leading-5 text-muted">Comparirà accanto al tuo nome quando scrivi.</span>
             </label>
             <label>
               <span className="text-sm font-semibold text-ink">Email privata</span>
@@ -149,7 +149,7 @@ export default async function RegisterPage({ searchParams }: PageProps) {
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label>
-                      <span className="text-sm font-semibold text-ink">Categoría principale</span>
+                      <span className="text-sm font-semibold text-ink">Categoria principale</span>
                       <select name="supplierCategory" required className="focus-ring mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-ink">
                         <option value="">Scegli categoria</option>
                         {supplierCategories.map((category) => (

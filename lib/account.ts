@@ -48,12 +48,12 @@ export async function clearAccountSession() {
 }
 
 export async function currentAccount() {
-  await ensureAccountSchema();
-
   const cookieStore = await cookies();
   const value = cookieStore.get(ACCOUNT_COOKIE)?.value;
   const [id] = value?.split(".") ?? [];
   if (!id) return null;
+
+  await ensureAccountSchema();
 
   const account = await prisma.userAccount.findUnique({ where: { id } });
   if (!account || account.status !== "active") return null;

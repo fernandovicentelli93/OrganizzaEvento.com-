@@ -69,7 +69,7 @@ const faqs = [
   },
   {
     question: "Posso partire dalla musica invece che dalla location?",
-    answer: "Si. Il modulo ti fa scegliere il primo fornitore: musica, location, planner, catering, foto e video o un'altra categoria."
+    answer: "Sì. Il modulo ti fa scegliere il primo fornitore: musica, location, planner, catering, foto e video o un'altra categoria."
   },
   {
     question: "Che ruolo ha Vibes Planner?",

@@ -61,7 +61,7 @@ export function CommunityArtBand({ questions }: CommunityArtBandProps) {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-violet-cta">Prima di decidere</p>
             <h2 className="mt-3 text-3xl font-semibold leading-tight text-ink">Leggi due casi simili.</h2>
             <p className="mt-4 text-sm leading-7 text-muted">
-              A volte basta vedere come si e mosso qualcun altro per capire cosa chiedere a un fornitore.
+              A volte basta vedere come si è mosso qualcun altro per capire cosa chiedere a un fornitore.
             </p>
           </div>
 

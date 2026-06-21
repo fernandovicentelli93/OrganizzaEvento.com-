@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AccountDashboard } from "@/components/AccountDashboard";
+import { SupplierCrmDashboard } from "@/components/SupplierCrmDashboard";
 import { currentAccount, dashboardPath } from "@/lib/account";
 import { prisma } from "@/lib/prisma";
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  searchParams?: Promise<{ profilo?: string; cancella?: string }>;
+  searchParams?: Promise<{ profilo?: string; cancella?: string; sezione?: string }>;
 };
 
 export default async function SupplierDashboardPage({ searchParams }: PageProps) {
@@ -36,11 +36,11 @@ export default async function SupplierDashboardPage({ searchParams }: PageProps)
   ]);
 
   return (
-    <AccountDashboard
+    <SupplierCrmDashboard
       account={account}
-      role="supplier"
       questions={questions}
       answers={answers}
+      section={params.sezione}
       profileStatus={params.profilo}
       deleteStatus={params.cancella}
     />

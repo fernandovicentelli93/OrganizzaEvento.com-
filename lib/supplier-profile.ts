@@ -7,7 +7,7 @@
   "Allestimenti e fiori",
   "Open bar e beverage",
   "Animazione bambini",
-  "Audio, luci e técnica",
+  "Audio, luci e tecnica",
   "Noleggi e arredi",
   "Grafica, inviti e stationery",
   "Altro servizio eventi"

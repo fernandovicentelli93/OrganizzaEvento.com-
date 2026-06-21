@@ -72,6 +72,32 @@ async function ensureAnalyticsSchemaOnce() {
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "CommunityActivity_accountId_idx" ON "CommunityActivity"("accountId");`);
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "CommunityActivity_visitorHash_idx" ON "CommunityActivity"("visitorHash");`);
   await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "CommunityActivity_createdAt_idx" ON "CommunityActivity"("createdAt");`);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "MarketingEvent" (
+      "id" TEXT NOT NULL,
+      "eventName" TEXT NOT NULL,
+      "path" TEXT,
+      "locale" TEXT,
+      "placement" TEXT,
+      "target" TEXT,
+      "metadata" JSONB,
+      "visitorHash" TEXT,
+      "sessionHash" TEXT,
+      "accountId" TEXT,
+      "userAgentHash" TEXT,
+      "ipHash" TEXT,
+      "isBot" BOOLEAN NOT NULL DEFAULT false,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "MarketingEvent_pkey" PRIMARY KEY ("id")
+    );
+  `);
+
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "MarketingEvent_eventName_idx" ON "MarketingEvent"("eventName");`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "MarketingEvent_path_idx" ON "MarketingEvent"("path");`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "MarketingEvent_placement_idx" ON "MarketingEvent"("placement");`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "MarketingEvent_accountId_idx" ON "MarketingEvent"("accountId");`);
+  await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "MarketingEvent_createdAt_idx" ON "MarketingEvent"("createdAt");`);
 }
 
 export async function ensureAnalyticsSchema() {
@@ -194,4 +220,67 @@ export async function recordCommunityActivity(input: {
   } catch (error) {
     console.error("Community activity tracking failed", error);
   }
+}
+
+export async function recordMarketingEvent(input: {
+  eventName: string;
+  path?: string | null;
+  locale?: string | null;
+  referrer?: string | null;
+  placement?: string | null;
+  target?: string | null;
+  metadata?: Record<string, unknown> | null;
+}) {
+  await ensureAnalyticsSchema();
+
+  const cookieStore = await cookies();
+  if (cookieStore.get(ADMIN_COOKIE)?.value) return { ok: true, skipped: "admin" };
+
+  const headerStore = await headers();
+  const userAgent = headerStore.get("user-agent") ?? "";
+  const isBot = isLikelyBot(userAgent);
+  if (isBot) return { ok: true, skipped: "bot" };
+
+  const { visitorHash, sessionHash } = await getOrCreateVisitorIdentity();
+  const accountId = await currentAccountIdFromCookie();
+  const forwardedFor = headerStore.get("x-forwarded-for") ?? headerStore.get("x-real-ip") ?? "";
+  const metadata = {
+    ...(input.metadata ?? {}),
+    ...(input.referrer ? { referrer: safeString(input.referrer, 600) } : {})
+  };
+
+  await prisma.$executeRaw`
+    INSERT INTO "MarketingEvent" (
+      "id",
+      "eventName",
+      "path",
+      "locale",
+      "placement",
+      "target",
+      "metadata",
+      "visitorHash",
+      "sessionHash",
+      "accountId",
+      "userAgentHash",
+      "ipHash",
+      "isBot"
+    )
+    VALUES (
+      ${randomUUID()},
+      ${safeString(input.eventName, 80)},
+      ${safeString(input.path, 600) || null},
+      ${safeString(input.locale, 8) || null},
+      ${safeString(input.placement, 120) || null},
+      ${safeString(input.target, 220) || null},
+      ${JSON.stringify(metadata)}::jsonb,
+      ${visitorHash},
+      ${sessionHash},
+      ${accountId},
+      ${userAgent ? sha256(userAgent) : null},
+      ${forwardedFor ? sha256(forwardedFor.split(",")[0]?.trim() ?? forwardedFor) : null},
+      false
+    );
+  `;
+
+  return { ok: true, skipped: null };
 }

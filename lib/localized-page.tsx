@@ -1370,7 +1370,7 @@ function LegacyLocalizedHome({ locale }: { locale: TranslationLocale }) {
             <Link href={localizedStaticPath(locale, "topics")} className="focus-ring rounded-xl border border-white/70 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/20">
               {c.explore}
             </Link>
-            <VibesSupplierSearch locale={locale} variant="dark" className="text-base shadow-soft">
+            <VibesSupplierSearch locale={locale} variant="dark" className="text-base shadow-soft" trackingPlacement={`${locale}_hero`}>
               {c.supplierSearchCta}
             </VibesSupplierSearch>
           </div>
@@ -2100,7 +2100,7 @@ function Home({ locale }: { locale: TranslationLocale }) {
             <Link href={localizedStaticPath(locale, "analyzeQuote")} className="focus-ring inline-flex min-h-12 justify-center rounded-xl bg-violet-cta px-6 py-3 text-base font-semibold text-white shadow-soft transition hover:bg-violet-hover">
               {c.staticDescriptions.analyzeQuote.cta}
             </Link>
-            <VibesSupplierSearch locale={locale} variant="dark" className="text-base shadow-soft">
+            <VibesSupplierSearch locale={locale} variant="dark" className="text-base shadow-soft" trackingPlacement={`${locale}_supplier_section`}>
               {c.supplierSearchCta}
             </VibesSupplierSearch>
           </div>

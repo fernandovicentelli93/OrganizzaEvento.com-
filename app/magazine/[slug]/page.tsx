@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuestionCard } from "@/components/QuestionCard";
+import { SupplierFinderPromo } from "@/components/SupplierFinderPromo";
 import { articleFaqs, articleSections, articleTags, articleTakeaways } from "@/lib/articles";
 import { findEditorialCategoryByName } from "@/lib/editorial";
 import { formatDate } from "@/lib/format";
@@ -216,6 +217,8 @@ export default async function MagazineArticlePage({ params }: PageProps) {
               ))}
             </div>
           </section>
+
+          <SupplierFinderPromo placement="magazine_article_after_community" variant="wide" />
 
           <section className="rounded-[1.6rem] border border-line bg-white p-6 shadow-sm sm:p-8">
             <h2 className="text-2xl font-semibold tracking-tight text-ink">Hai un caso simile?</h2>

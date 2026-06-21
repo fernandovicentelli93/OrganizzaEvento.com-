@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { EmptyState } from "@/components/EmptyState";
 import { QuestionCard } from "@/components/QuestionCard";
+import { SupplierFinderPromo } from "@/components/SupplierFinderPromo";
 import { selfAlternates } from "@/lib/i18n-routing";
 import { prisma } from "@/lib/prisma";
 
@@ -90,6 +91,7 @@ export default async function CostPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-10">
+        <SupplierFinderPromo placement="real_prices_before_threads" variant="wide" className="mb-7" />
         <div className="grid gap-5">
           <div className="space-y-4">
             {questions.length ? (

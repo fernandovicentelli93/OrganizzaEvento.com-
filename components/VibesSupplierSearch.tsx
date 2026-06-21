@@ -3,6 +3,7 @@
 import type React from "react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { trackMarketingEvent } from "@/lib/client-analytics";
 import { VIBES_PLANNER_CLIENT_REQUEST_URL } from "@/lib/constants";
 import type { Locale } from "@/lib/i18n-basic";
 import {
@@ -21,6 +22,7 @@ type VibesSupplierSearchProps = {
   locale?: Locale;
   variant?: "dark" | "pink" | "light";
   className?: string;
+  trackingPlacement?: string;
   children: React.ReactNode;
 };
 
@@ -148,7 +150,13 @@ function buildSearchParams(input: {
   return params;
 }
 
-export function VibesSupplierSearch({ locale = "it", variant = "light", className = "", children }: VibesSupplierSearchProps) {
+export function VibesSupplierSearch({
+  locale = "it",
+  variant = "light",
+  className = "",
+  trackingPlacement = "supplier_search_button",
+  children
+}: VibesSupplierSearchProps) {
   const copy = supplierSearchCopy(locale);
   const closeShortLabel = locale === "it" ? "Chiudi" : locale === "es" ? "Cerrar" : locale === "fr" ? "Fermer" : "Close";
   const [mounted, setMounted] = useState(false);
@@ -167,6 +175,11 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
   const resultsTopRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<VibesSupplierCard[]>([]);
   const searchRunRef = useRef(0);
+  const trackingBase = {
+    placement: trackingPlacement,
+    locale,
+    target: "vibes_supplier_search"
+  };
 
   const pageSize = 5;
   const selectedCategory = useMemo(
@@ -213,6 +226,18 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
   const hasNextPage = pageEnd < results.length;
   const hasPreviousPage = resultPage > 0;
 
+  function trackSearchEvent(eventName: string, metadata: Record<string, string | number | boolean | null | undefined> = {}) {
+    trackMarketingEvent(eventName, {
+      ...trackingBase,
+      category: category || null,
+      subcategory: subcategory || null,
+      province: province || null,
+      event_type: eventType || null,
+      has_query: Boolean(query.trim()),
+      ...metadata
+    });
+  }
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -253,6 +278,7 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
       keepExistingOnEmpty?: boolean;
       preserveExistingOnError?: boolean;
       silentIfResultsVisible?: boolean;
+      source?: "initial" | "geolocation" | "manual";
     } = {}
   ) {
     event?.preventDefault();
@@ -285,6 +311,11 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
         setResults(nextResults);
       }
       setStatus("ready");
+      trackSearchEvent("supplier_search_results", {
+        source: options.source ?? (event ? "manual" : "initial"),
+        result_count: nextResults.length,
+        used_geolocation: Boolean(options.coordinates ?? userCoordinates)
+      });
       if (options.revealResults !== false) jumpToResultsTop();
     } catch {
       if (runId !== searchRunRef.current) return;
@@ -294,19 +325,23 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
       }
       setResults([]);
       setStatus("error");
+      trackSearchEvent("supplier_search_error", {
+        source: options.source ?? (event ? "manual" : "initial")
+      });
     }
   }
 
   function openModal() {
     setIsOpen(true);
     setOpenSelect(null);
+    trackSearchEvent("supplier_search_open");
     if ((status === "idle" || status === "error") && !results.length) {
       void loadInitialResults();
     }
   }
 
   function loadInitialResults() {
-    void search(undefined, { revealResults: false, applyIfStillEmpty: true, keepExistingOnEmpty: true });
+    void search(undefined, { revealResults: false, applyIfStillEmpty: true, keepExistingOnEmpty: true, source: "initial" });
 
     if (!("geolocation" in navigator)) return;
 
@@ -322,7 +357,8 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
           revealResults: false,
           keepExistingOnEmpty: true,
           preserveExistingOnError: true,
-          silentIfResultsVisible: true
+          silentIfResultsVisible: true,
+          source: "geolocation"
         });
       },
       () => {
@@ -349,6 +385,10 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
 
   function goToResultPage(nextPage: number) {
     setResultPage(nextPage);
+    trackSearchEvent("supplier_search_page_change", {
+      result_page: nextPage + 1,
+      result_count: results.length
+    });
     jumpToResultsTop();
   }
 
@@ -398,6 +438,9 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
                   onClick={() => {
                     setOpenSelect(null);
                     setIsOpen(false);
+                    trackSearchEvent("supplier_search_close", {
+                      result_count: results.length
+                    });
                   }}
                   className="focus-ring inline-flex min-h-8 shrink-0 items-center justify-center gap-1 rounded-md border border-ink/10 bg-ink px-2 py-1 text-[11px] font-semibold leading-none text-white shadow-sm transition hover:bg-violet-cta sm:min-h-9 sm:px-2.5 sm:text-xs"
                   aria-label={copy.close}
@@ -488,6 +531,12 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
                 href={VIBES_PLANNER_CLIENT_REQUEST_URL}
                 target="_blank"
                 rel="noopener noreferrer sponsored"
+                onClick={() =>
+                  trackSearchEvent("supplier_guided_request_click", {
+                    placement: `${trackingPlacement}_sidebar`,
+                    result_count: results.length
+                  })
+                }
                 className="focus-ring inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-petal"
                 aria-label={copy.requestHint}
               >
@@ -514,6 +563,12 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
                     href={VIBES_PLANNER_CLIENT_REQUEST_URL}
                     target="_blank"
                     rel="noopener noreferrer sponsored"
+                    onClick={() =>
+                      trackSearchEvent("supplier_guided_request_click", {
+                        placement: `${trackingPlacement}_results_header`,
+                        result_count: results.length
+                      })
+                    }
                     className="focus-ring inline-flex min-h-8 items-center gap-1.5 rounded-md bg-ink px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-cta"
                     aria-label={copy.requestHint}
                   >
@@ -595,6 +650,15 @@ export function VibesSupplierSearch({ locale = "it", variant = "light", classNam
                             href={supplier.vibesUrl}
                             target="_blank"
                             rel="noopener noreferrer sponsored"
+                            onClick={() =>
+                              trackSearchEvent("supplier_profile_click", {
+                                supplier_id: supplier.id,
+                                supplier_category: supplier.categorySlug,
+                                supplier_premium: supplier.premium,
+                                result_position: pageStart + visibleResults.indexOf(supplier) + 1,
+                                result_count: results.length
+                              })
+                            }
                             className="focus-ring inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-[#1b1917] px-3 py-2.5 text-xs font-semibold tracking-[0.05em] text-white transition hover:bg-[#b8328f]"
                           >
                             <img src="/partners/vibes-planner/logo.jpg" alt="" className="h-5 w-5 rounded bg-white object-cover" />
@@ -762,5 +826,3 @@ function SupplierSearchLoadingOverlay({ copy }: { copy: ReturnType<typeof suppli
     </div>
   );
 }
-
-

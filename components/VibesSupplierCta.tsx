@@ -1,10 +1,16 @@
+"use client";
+
 import type React from "react";
+import { usePathname } from "next/navigation";
+import { trackMarketingEvent } from "@/lib/client-analytics";
 import { VIBES_PLANNER_CLIENT_REQUEST_URL } from "@/lib/constants";
+import { localeFromPathname } from "@/lib/i18n-basic";
 
 type VibesSupplierCtaProps = {
   children: React.ReactNode;
   className?: string;
   logoClassName?: string;
+  placement?: string;
   variant?: "light" | "dark" | "pink";
 };
 
@@ -17,12 +23,28 @@ const variantClassNames = {
   pink: "bg-violet-cta text-white hover:bg-violet-hover"
 };
 
-export function VibesSupplierCta({ children, className = "", logoClassName = "h-7 w-7", variant = "light" }: VibesSupplierCtaProps) {
+export function VibesSupplierCta({
+  children,
+  className = "",
+  logoClassName = "h-7 w-7",
+  placement = "vibes_direct_request_cta",
+  variant = "light"
+}: VibesSupplierCtaProps) {
+  const pathname = usePathname();
+  const locale = localeFromPathname(pathname);
+
   return (
     <a
       href={VIBES_PLANNER_CLIENT_REQUEST_URL}
       target="_blank"
       rel="noopener noreferrer sponsored"
+      onClick={() =>
+        trackMarketingEvent("vibes_guided_request_click", {
+          placement,
+          locale,
+          target: VIBES_PLANNER_CLIENT_REQUEST_URL
+        })
+      }
       className={`${baseClassName} ${variantClassNames[variant]} ${className}`}
     >
         <img

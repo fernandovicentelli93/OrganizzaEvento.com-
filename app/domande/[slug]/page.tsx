@@ -6,6 +6,7 @@ import { AnswerForm } from "@/components/AnswerForm";
 import { QuestionNotifyForm } from "@/components/QuestionNotifyForm";
 import { ReportButton } from "@/components/ReportButton";
 import { SupplierHelpNudge } from "@/components/SupplierHelpNudge";
+import { SupplierFinderPromo } from "@/components/SupplierFinderPromo";
 import { TagBadge } from "@/components/TagBadge";
 import { VoteButtons } from "@/components/VoteButtons";
 import { createCaptchaChallenge } from "@/lib/captcha";
@@ -490,6 +491,9 @@ export default async function QuestionDetailPage({ params, searchParams }: PageP
                 startedAt={startedAt}
                 sent={search.fornitori === "inviata"}
               />
+              <div className="mt-5">
+                <SupplierFinderPromo placement="question_detail_after_supplier_nudge" variant="inline" />
+              </div>
             </div>
           </article>
 

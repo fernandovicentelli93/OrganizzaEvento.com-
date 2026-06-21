@@ -125,7 +125,7 @@ export default async function HomePage() {
             >
               Analizza preventivo
             </Link>
-            <VibesSupplierSearch variant="dark" className="text-base shadow-soft">
+            <VibesSupplierSearch variant="dark" className="text-base shadow-soft" trackingPlacement="home_hero">
               Trova fornitori
             </VibesSupplierSearch>
           </div>

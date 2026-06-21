@@ -4,6 +4,7 @@ import { ConversationEntryGrid } from "@/components/ConversationEntryGrid";
 import { EmptyState } from "@/components/EmptyState";
 import { QuestionCard } from "@/components/QuestionCard";
 import { SearchBar } from "@/components/SearchBar";
+import { SupplierFinderPromo } from "@/components/SupplierFinderPromo";
 import { UsefulAnswersStrip } from "@/components/UsefulAnswersStrip";
 import { selfAlternates } from "@/lib/i18n-routing";
 import { prisma } from "@/lib/prisma";
@@ -93,6 +94,9 @@ export default async function QuestionsPage({ searchParams }: PageProps) {
         <div className="mt-8">
           <SearchBar categories={categories} q={q} category={category} postType={postType} eventPhase={eventPhase} />
         </div>
+        <div className="mt-6">
+          <SupplierFinderPromo placement="questions_after_search" variant="wide" />
+        </div>
         <div className="mt-7">
           <UsefulAnswersStrip answers={usefulAnswers} />
         </div>
@@ -112,4 +116,3 @@ export default async function QuestionsPage({ searchParams }: PageProps) {
     </div>
   );
 }
-

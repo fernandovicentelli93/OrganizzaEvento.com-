@@ -352,6 +352,8 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
   const [scrollToStepId, setScrollToStepId] = useState<number | null>(null);
   const [openSubcategoryStepId, setOpenSubcategoryStepId] = useState<number | null>(null);
   const wizardTopRef = useRef<HTMLElement | null>(null);
+  const categoryStartRef = useRef<HTMLDivElement | null>(null);
+  const hasAutoRevealedCategories = useRef(false);
   const stepRefs = useRef<Record<number, HTMLElement | null>>({});
 
   useEffect(() => {
@@ -407,6 +409,22 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
     }, 60);
     return () => window.clearTimeout(timer);
   }, [scrollToStepId, steps]);
+
+  useEffect(() => {
+    if (!isBriefComplete) {
+      hasAutoRevealedCategories.current = false;
+      return;
+    }
+
+    if (hasAutoRevealedCategories.current) return;
+    hasAutoRevealedCategories.current = true;
+
+    const timer = window.setTimeout(() => {
+      categoryStartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [isBriefComplete]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -719,7 +737,20 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
         </div>
       </div>
 
-      <div className="border-b border-line bg-[#FFFDF7] p-4 sm:p-6 lg:p-8">
+      {!isBriefComplete ? (
+        <div className="border-t border-line bg-[#FFFDF7] p-4 sm:p-6 lg:p-8">
+          <div className="rounded-md border border-dashed border-line bg-white p-5 text-center shadow-sm sm:p-7">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Prossimo step</p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Completa il brief evento.</h3>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-muted">
+              Dopo aver inserito tipo evento, via o zona, provincia, invitati, budget e data, potrai scegliere il primo
+              fornitore da cercare e confrontare le vetrine Vibes Planner piu coerenti.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+      <div ref={categoryStartRef} className="border-b border-line bg-[#FFFDF7] p-4 sm:p-6 lg:p-8">
         <div className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
             <div>
@@ -1092,6 +1123,8 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
           </div>
         </aside>
       </div>
+        </>
+      )}
     </section>
   );
 }

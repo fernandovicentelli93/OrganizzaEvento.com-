@@ -85,7 +85,7 @@ function textPreview(value: string) {
   return value.replace(/\s+/g, " ").trim().slice(0, 145);
 }
 
-function CrmShell({
+function LegacyCrmShell({
   account,
   section,
   children
@@ -170,6 +170,92 @@ function CrmShell({
   );
 }
 
+function CrmShell({
+  account,
+  section,
+  children
+}: {
+  account: UserAccount;
+  section: string;
+  children: ReactNode;
+}) {
+  const googleConnected = account.authProvider.split("+").includes("google");
+  const publicTag = accountPublicTag(account);
+
+  return (
+    <div className="mx-auto max-w-[1480px] px-3 py-6 sm:px-4 lg:px-6">
+      <div className="overflow-hidden rounded-[1.15rem] border border-line bg-white shadow-soft">
+        <div className="border-b border-line bg-[#FFF8FB] p-4 sm:p-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <details className="group relative">
+                <summary className="focus-ring flex min-h-12 cursor-pointer list-none items-center justify-between rounded-md bg-ink px-4 py-3 text-sm font-semibold text-white sm:min-w-[240px]">
+                  <span>Menu dashboard</span>
+                  <span className="text-xs opacity-80 group-open:rotate-180">▼</span>
+                </summary>
+                <nav className="z-30 mt-3 grid gap-2 rounded-md border border-line bg-white p-3 shadow-soft sm:absolute sm:left-0 sm:top-full sm:w-[330px]">
+                  {navItems.map((item) => {
+                    const selected = item.id === section;
+                    return (
+                      <Link
+                        key={item.id}
+                        href={`/dashboard/fornitore?sezione=${item.id}`}
+                        className={`focus-ring rounded-md border px-4 py-3 transition ${
+                          selected ? "border-[#E7B8C8] bg-[#FFF3F7] text-violet-cta" : "border-line bg-white text-ink hover:bg-cream"
+                        }`}
+                      >
+                        <span className="block text-sm font-semibold">{item.label}</span>
+                        <span className="mt-1 block text-xs text-muted">{item.helper}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </details>
+
+              <div className="flex items-center gap-3 rounded-[0.9rem] border border-line bg-white p-3">
+                {account.photoUrl ? (
+                  <img src={account.photoUrl} alt="" className="h-12 w-12 rounded-[0.7rem] object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[0.7rem] bg-petal text-sm font-bold text-violet-cta">
+                    {initials(account.displayName)}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-ink">{account.businessName || account.displayName}</p>
+                  <p className="truncate text-xs text-muted">{publicTag || "Fornitore"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="rounded-[0.9rem] border border-line bg-white px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Accesso</p>
+                <p className="mt-1 text-sm font-semibold text-ink">{googleConnected ? "Google collegato" : "Google non collegato"}</p>
+              </div>
+              {googleConnected ? null : (
+                <Link
+                  href="/api/auth/google/start?role=supplier&locale=it&returnTo=%2Fdashboard%2Ffornitore"
+                  className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-cream"
+                >
+                  <GoogleIcon />
+                  Usa Google
+                </Link>
+              )}
+              <form action="/api/account/logout" method="post">
+                <button className="focus-ring min-h-11 rounded-md border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink transition hover:bg-petal">
+                  Esci
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <main className="min-h-[calc(100vh-240px)] bg-[#FFFDF8] p-4 sm:p-6 lg:p-8">{children}</main>
+      </div>
+    </div>
+  );
+}
+
 function PlatformOverview({ account, questions, answers }: Pick<SupplierCrmDashboardProps, "account" | "questions" | "answers">) {
   const score = completionScore(account);
   const level = levelFromPoints(account.activityPoints);
@@ -178,9 +264,9 @@ function PlatformOverview({ account, questions, answers }: Pick<SupplierCrmDashb
   const areas = splitStoredList(account.serviceAreas);
   const profileReady = score >= 70;
   const stats = [
-    { label: "Stato vetrina", value: profileReady ? "Completa" : "Da completare", helper: `${score}% profilo` },
-    { label: "Risposte date", value: answers.length, helper: "Conversazioni community" },
+    { label: "Risposte", value: answers.length, helper: "Conversazioni community" },
     { label: "Domande aperte", value: questions.length, helper: "Contenuti pubblicati" },
+    { label: "Profilo", value: profileReady ? "Completo" : "Da completare", helper: `${score}% compilato` },
     { label: "Badge", value: level.name, helper: `${account.activityPoints} punti` }
   ];
 

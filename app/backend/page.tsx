@@ -33,6 +33,7 @@ export const dynamic = "force-dynamic";
 
 type PageProps = {
   searchParams?: Promise<{
+    sezione?: string;
     errore?: string;
     pulizia?: string;
     giorno?: string;
@@ -61,6 +62,24 @@ const accountStatusLabels = {
   suspended: "Sospeso",
   deleted: "Eliminato"
 };
+
+const backendSections = [
+  { id: "fornitori", label: "Fornitori in piattaforma", helper: "Vista principale" },
+  { id: "iscritti", label: "Iscritti e connessioni", helper: "Account e traffico reale" },
+  { id: "account", label: "Schede account", helper: "Profili completi" },
+  { id: "richieste", label: "Richieste", helper: "Fornitori e supporto" },
+  { id: "moderazione", label: "Moderazione", helper: "Domande e risposte" },
+  { id: "segnalazioni", label: "Segnalazioni", helper: "Contenuti da verificare" },
+  { id: "statistiche", label: "Statistiche", helper: "Numeri piattaforma" },
+  { id: "seo", label: "SEO", helper: "Pagine e sitemap" },
+  { id: "notifiche", label: "Notifiche", helper: "Email operative" }
+] as const;
+
+type BackendSection = (typeof backendSections)[number]["id"];
+
+function backendSectionHref(id: BackendSection) {
+  return id === "fornitori" ? "/gestione" : `/gestione?sezione=${id}`;
+}
 
 function dateInputValue(date: Date) {
   const year = date.getFullYear();
@@ -191,6 +210,10 @@ export default async function BackendPage({ searchParams }: PageProps) {
   await ensureAccountSchema();
   await ensureAnalyticsSchema();
 
+  const activeSection = backendSections.some((section) => section.id === params.sezione)
+    ? (params.sezione as BackendSection)
+    : "fornitori";
+  const activeSectionLabel = backendSections.find((section) => section.id === activeSection)?.label ?? "Fornitori in piattaforma";
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
   const selectedDay = dayRange(params.giorno);
@@ -341,6 +364,51 @@ export default async function BackendPage({ searchParams }: PageProps) {
     .filter((page) => page.indexable && page.priorityTier === "P0")
     .slice(0, 8);
   const suppliersInPlatform = accounts.filter((account) => account.role === "supplier");
+  const supplierAccountIds = suppliersInPlatform.map((account) => account.id);
+  const [supplierQuestions, supplierAnswers] = supplierAccountIds.length
+    ? await Promise.all([
+        prisma.question.findMany({
+          where: { accountId: { in: supplierAccountIds } },
+          orderBy: { createdAt: "desc" },
+          take: 400,
+          select: {
+            id: true,
+            accountId: true,
+            title: true,
+            slug: true,
+            status: true,
+            createdAt: true,
+            category: { select: { name: true } }
+          }
+        }),
+        prisma.answer.findMany({
+          where: { accountId: { in: supplierAccountIds } },
+          orderBy: { createdAt: "desc" },
+          take: 400,
+          select: {
+            id: true,
+            accountId: true,
+            content: true,
+            status: true,
+            createdAt: true,
+            question: { select: { title: true, slug: true } }
+          }
+        })
+      ])
+    : [[], []];
+  const supplierActivityMap = new Map(
+    suppliersInPlatform.map((account) => [
+      account.id,
+      { questions: [] as typeof supplierQuestions, answers: [] as typeof supplierAnswers }
+    ])
+  );
+
+  supplierQuestions.forEach((question) => {
+    if (question.accountId) supplierActivityMap.get(question.accountId)?.questions.push(question);
+  });
+  supplierAnswers.forEach((answer) => {
+    if (answer.accountId) supplierActivityMap.get(answer.accountId)?.answers.push(answer);
+  });
   const uniqueVisitorsSelectedDay = selectedDayUniqueVisitors.length;
   const uniqueSessionsSelectedDay = selectedDayUniqueSessions.length;
   const registeredVisitorsSelectedDay = selectedDayRegisteredVisitors.filter((item) => item.accountId).length;
@@ -418,27 +486,70 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </form>
       </div>
 
+      <div className="mb-6 rounded-[1.2rem] border border-line bg-white p-3 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <details className="group relative w-full lg:w-auto">
+            <summary className="focus-ring flex min-h-12 cursor-pointer list-none items-center justify-between rounded-md bg-ink px-4 py-3 text-sm font-semibold text-white lg:min-w-[260px]">
+              <span>Menu backend</span>
+              <span className="text-xs opacity-80 group-open:rotate-180">▼</span>
+            </summary>
+            <div className="z-30 mt-3 grid gap-2 rounded-md border border-line bg-white p-3 shadow-soft lg:absolute lg:left-0 lg:top-full lg:w-[360px]">
+              {backendSections.map((section) => (
+                <a
+                  key={section.id}
+                  href={backendSectionHref(section.id)}
+                  className={`focus-ring rounded-md border px-4 py-3 transition ${
+                    activeSection === section.id
+                      ? "border-violet-cta bg-[#FFF3F7] text-ink"
+                      : "border-line bg-white text-ink hover:bg-cream"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold">{section.label}</span>
+                  <span className="mt-1 block text-xs text-muted">{section.helper}</span>
+                </a>
+              ))}
+            </div>
+          </details>
+          <div className="rounded-md border border-line bg-cream px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Sezione aperta</p>
+            <p className="mt-1 text-sm font-semibold text-ink">{activeSectionLabel}</p>
+          </div>
+        </div>
+      </div>
+
       {params.pulizia ? (
         <div className="mb-8 rounded-[1.1rem] border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-800">
           Pulizia completata: {params.pulizia} record diagnostici/test rimossi.
         </div>
       ) : null}
 
-      <section className="mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section
+        className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${
+          activeSection === "fornitori" || activeSection === "iscritti" ? "" : "hidden"
+        }`}
+      >
         <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">CMS operativo</p>
-            <h2 className="mt-2 text-2xl font-semibold text-ink">Iscritti, connessioni e post reali</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">
+              {activeSection === "fornitori" ? "CRM fornitori" : "CMS operativo"}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">
+              {activeSection === "fornitori" ? "Fornitori in piattaforma" : "Iscritti, connessioni e post reali"}
+            </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-              Qui vedi utenti registrati, ultima connessione, categoria scelta, visitatori anonimi/nickname e post creati
-              realmente dai form pubblici. I contenuti importati o generati internamente non entrano nel conteggio
-              "Post reali".
+              {activeSection === "fornitori"
+                ? "Vista centrale per vedere fornitori registrati, domande aperte, risposte pubblicate e ultima attività reale."
+                : "Qui vedi utenti registrati, ultima connessione, categoria scelta, visitatori anonimi/nickname e post creati realmente dai form pubblici. I contenuti importati o generati internamente non entrano nel conteggio \"Post reali\"."}
             </p>
           </div>
-          <TagBadge tone="violet">Filtro giorno: {selectedDay.value}</TagBadge>
+          <TagBadge tone="violet">{activeSection === "fornitori" ? `${suppliersInPlatform.length} fornitori` : `Filtro giorno: ${selectedDay.value}`}</TagBadge>
         </div>
 
-        <form className="mt-5 grid gap-3 rounded-[1.1rem] border border-line bg-cream p-4 md:grid-cols-2 xl:grid-cols-6">
+        <form
+          className={`mt-5 grid gap-3 rounded-[1.1rem] border border-line bg-cream p-4 md:grid-cols-2 xl:grid-cols-6 ${
+            activeSection === "iscritti" ? "" : "hidden"
+          }`}
+        >
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Giorno</span>
             <input
@@ -504,7 +615,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
           </div>
         </form>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={`mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4 ${activeSection === "iscritti" ? "" : "hidden"}`}>
           {cmsStatCards.map((card) => (
             <article key={card.label} className="rounded-[1.1rem] border border-line bg-cream p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{card.label}</p>
@@ -514,20 +625,20 @@ export default async function BackendPage({ searchParams }: PageProps) {
           ))}
         </div>
 
-        <section className="mt-6 overflow-hidden rounded-[1.1rem] border border-line bg-white">
+        <section className={`mt-6 overflow-hidden rounded-[1.1rem] border border-line bg-white ${activeSection === "fornitori" ? "" : "hidden"}`}>
           <div className="flex flex-col gap-2 border-b border-line bg-[#FFF8FB] px-4 py-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">Fornitori in piattaforma</p>
               <h3 className="mt-2 text-xl font-semibold text-ink">Vista CRM fornitori</h3>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-muted">
-                Schede fornitore registrate, stato vetrina, ultimo accesso e segnali utili per capire chi è pronto a lavorare
-                sulla piattaforma.
+                Schede fornitore registrate, domande aperte, risposte pubblicate e segnali utili per capire chi è realmente
+                attivo sulla piattaforma.
               </p>
             </div>
             <TagBadge tone="violet">{suppliersInPlatform.length} fornitori filtrati</TagBadge>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-[1180px] divide-y divide-line text-left text-sm">
+            <table className="min-w-[1280px] divide-y divide-line text-left text-sm">
               <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
                 <tr>
                   <th className="px-3 py-3 font-semibold">#</th>
@@ -537,12 +648,12 @@ export default async function BackendPage({ searchParams }: PageProps) {
                   <th className="px-3 py-3 font-semibold">Telefono</th>
                   <th className="px-3 py-3 font-semibold">Regione</th>
                   <th className="px-3 py-3 font-semibold">Provincia / zone</th>
-                  <th className="px-3 py-3 font-semibold">Tipo abbonamento</th>
-                  <th className="px-3 py-3 font-semibold">Stato vetrina</th>
+                  <th className="px-3 py-3 font-semibold">Domande aperte</th>
+                  <th className="px-3 py-3 font-semibold">Risposte</th>
                   <th className="px-3 py-3 font-semibold">Ultimo login</th>
                   <th className="px-3 py-3 font-semibold">Data creazione</th>
                   <th className="px-3 py-3 font-semibold">Stato</th>
-                  <th className="px-3 py-3 font-semibold">Azioni</th>
+                  <th className="px-3 py-3 font-semibold">Attività e azioni</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line bg-white">
@@ -551,6 +662,9 @@ export default async function BackendPage({ searchParams }: PageProps) {
                     const completion = supplierProfileCompletion(account);
                     const leads = matchedLeadCount(account, supplierRequests);
                     const profileReady = completion >= 70;
+                    const activity = supplierActivityMap.get(account.id) ?? { questions: [], answers: [] };
+                    const latestQuestion = activity.questions[0];
+                    const latestAnswer = activity.answers[0];
 
                     return (
                       <tr key={`supplier-crm-${account.id}`} className="align-top">
@@ -570,13 +684,25 @@ export default async function BackendPage({ searchParams }: PageProps) {
                         <td className="px-3 py-3 text-muted">Non raccolto</td>
                         <td className="px-3 py-3 text-muted">{account.region || "-"}</td>
                         <td className="px-3 py-3 text-muted">{account.serviceAreas || account.city || "-"}</td>
-                        <td className="px-3 py-3">
-                          <TagBadge tone="gray">Base</TagBadge>
+                        <td className="px-3 py-3 min-w-[180px]">
+                          <TagBadge tone={activity.questions.length ? "green" : "gray"}>{activity.questions.length}</TagBadge>
+                          {latestQuestion ? (
+                            <a href={`/domande/${latestQuestion.slug}`} className="mt-2 block text-xs font-semibold leading-5 text-ink hover:text-violet-cta">
+                              {latestQuestion.title}
+                            </a>
+                          ) : (
+                            <p className="mt-2 text-xs leading-5 text-muted">Nessuna domanda aperta.</p>
+                          )}
                         </td>
-                        <td className="px-3 py-3">
-                          <TagBadge tone={profileReady ? "green" : "amber"}>
-                            {profileReady ? "Completa" : `Da completare ${completion}%`}
-                          </TagBadge>
+                        <td className="px-3 py-3 min-w-[180px]">
+                          <TagBadge tone={activity.answers.length ? "green" : "gray"}>{activity.answers.length}</TagBadge>
+                          {latestAnswer ? (
+                            <a href={`/domande/${latestAnswer.question.slug}`} className="mt-2 block text-xs font-semibold leading-5 text-ink hover:text-violet-cta">
+                              {latestAnswer.question.title}
+                            </a>
+                          ) : (
+                            <p className="mt-2 text-xs leading-5 text-muted">Nessuna risposta pubblicata.</p>
+                          )}
                         </td>
                         <td className="px-3 py-3 text-muted">{compactDateTime(account.lastLoginAt ?? account.lastSeenAt)}</td>
                         <td className="px-3 py-3 text-muted">{compactDateTime(account.createdAt)}</td>
@@ -585,8 +711,51 @@ export default async function BackendPage({ searchParams }: PageProps) {
                             {accountStatusLabels[account.status]}
                           </TagBadge>
                         </td>
-                        <td className="px-3 py-3">
-                          <div className="flex flex-wrap gap-2">
+                        <td className="px-3 py-3 min-w-[280px]">
+                          <details className="rounded-md border border-line bg-cream p-3">
+                            <summary className="cursor-pointer text-xs font-semibold text-ink">Vedi cosa ha scritto</summary>
+                            <div className="mt-3 space-y-3">
+                              <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Domande</p>
+                                {activity.questions.length ? (
+                                  <div className="mt-2 space-y-2">
+                                    {activity.questions.slice(0, 5).map((question) => (
+                                      <a key={question.id} href={`/domande/${question.slug}`} className="block rounded-md bg-white p-2 text-xs leading-5 text-ink hover:bg-petal">
+                                        <span className="font-semibold">{question.title}</span>
+                                        <span className="mt-1 block text-muted">
+                                          {question.category.name} - {formatDate(question.createdAt)} - {question.status}
+                                        </span>
+                                      </a>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="mt-2 text-xs text-muted">Nessuna domanda collegata all'account.</p>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Risposte</p>
+                                {activity.answers.length ? (
+                                  <div className="mt-2 space-y-2">
+                                    {activity.answers.slice(0, 5).map((answer) => (
+                                      <a key={answer.id} href={`/domande/${answer.question.slug}`} className="block rounded-md bg-white p-2 text-xs leading-5 text-ink hover:bg-petal">
+                                        <span className="font-semibold">{answer.question.title}</span>
+                                        <span className="mt-1 block text-muted">{answer.content.slice(0, 110)}</span>
+                                        <span className="mt-1 block text-muted">
+                                          {formatDate(answer.createdAt)} - {answer.status}
+                                        </span>
+                                      </a>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="mt-2 text-xs text-muted">Nessuna risposta collegata all'account.</p>
+                                )}
+                              </div>
+                              <div className="rounded-md bg-white p-2 text-xs leading-5 text-muted">
+                                Profilo: {profileReady ? "completo" : `da completare ${completion}%`}
+                              </div>
+                            </div>
+                          </details>
+                          <div className="mt-3 flex flex-wrap gap-2">
                             {(["active", "suspended"] as const).map((status) => (
                               <form key={status} action={adminUpdateAccountStatus}>
                                 <input type="hidden" name="accountId" value={account.id} />
@@ -613,7 +782,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        <div className="mt-5 rounded-[1.1rem] border border-amber-200 bg-amber-50 p-4">
+        <div className={`mt-5 rounded-[1.1rem] border border-amber-200 bg-amber-50 p-4 ${activeSection === "iscritti" ? "" : "hidden"}`}>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-semibold text-amber-900">Pulizia dati di test</p>
@@ -630,7 +799,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-[1.1rem] border border-line">
+        <div className={`mt-6 overflow-hidden rounded-[1.1rem] border border-line ${activeSection === "iscritti" ? "" : "hidden"}`}>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-line bg-white text-left text-sm">
               <thead className="bg-cream text-xs uppercase tracking-[0.12em] text-muted">
@@ -680,7 +849,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "statistiche" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">Statistiche</p>
@@ -699,7 +868,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "seo" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">Preventivo Lab SEO</p>
@@ -738,7 +907,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "notifiche" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">Notifiche email</p>
@@ -768,7 +937,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mt-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section className={`mt-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "account" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-ink">Account registrati</h2>
@@ -848,7 +1017,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section className={`rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "richieste" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-ink">Richieste fornitori</h2>
@@ -919,7 +1088,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mt-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft">
+      <section className={`mt-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "richieste" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-ink">Richieste supporto</h2>
@@ -969,7 +1138,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mt-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-sm">
+      <section className={`mt-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-sm ${activeSection === "segnalazioni" ? "" : "hidden"}`}>
         <h2 className="text-2xl font-semibold text-ink">Segnalazioni</h2>
         <div className="mt-4 space-y-4">
           {reports.length ? (
@@ -1021,7 +1190,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-2">
+      <section className={`mt-8 grid gap-6 lg:grid-cols-2 ${activeSection === "moderazione" ? "" : "hidden"}`}>
         <div className="rounded-[1.6rem] border border-line bg-white p-5 shadow-sm">
           <h2 className="text-2xl font-semibold text-ink">Domande</h2>
           <div className="mt-4 space-y-4">

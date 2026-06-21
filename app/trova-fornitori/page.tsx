@@ -173,7 +173,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
 
           </div>
 
-          <div className="min-w-0 rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
+          <div className="hidden min-w-0 rounded-md border border-line bg-white p-4 shadow-soft sm:block sm:p-5">
             <div className="grid gap-3 sm:grid-cols-2">
               {quickBenefits.map((item, index) => (
                 <div key={item.title} className="rounded-md border border-line bg-cream p-4">
@@ -221,7 +221,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
         </div>
       </section>
 
-      <section className="border-y border-line bg-white">
+      <section className="hidden border-y border-line bg-white sm:block">
         <div className="mx-auto grid max-w-7xl gap-3 px-4 py-5 sm:px-6 md:grid-cols-4 lg:px-8">
           {flowSteps.map((step) => (
             <article key={step.title} className="rounded-md border border-line bg-[#FFFDF7] p-4">

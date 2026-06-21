@@ -1808,6 +1808,75 @@ function compactSentence(value: string, maxLength = 430) {
   return `${clean.slice(0, maxLength).replace(/\s+\S*$/, "")}...`;
 }
 
+function looksLikeCommunityPost(value: string, locale: QuoteAnalyzerLocale) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (clean.length < 140) return false;
+  const lower = clean.toLowerCase();
+  const hasQuestion = /[?¿]/.test(clean) || lower.includes("secondo voi") || lower.includes("what would you") || lower.includes("qué preguntar") || lower.includes("que demander");
+  const startsLikePost =
+    locale === "en"
+      ? /^(hi|hello|i received|i've received)/i.test(clean)
+      : locale === "es"
+        ? /^(hola|he recibido|recibí)/i.test(clean)
+        : locale === "fr"
+          ? /^(bonjour|j'ai reçu|j’ai reçu)/i.test(clean)
+          : /^(ciao|ho ricevuto|mi hanno mandato)/i.test(clean);
+
+  return startsLikePost && hasQuestion;
+}
+
+function repeatedOpeningPattern(locale: QuoteAnalyzerLocale) {
+  if (locale === "en") return /\b(hi|hello|i received|i've received)\b/gi;
+  if (locale === "es") return /\b(hola|he recibido|recibí)\b/gi;
+  if (locale === "fr") return /\b(bonjour|j'ai reçu|j’ai reçu)\b/gi;
+  return /\b(ciao|ho ricevuto|mi hanno mandato)\b/gi;
+}
+
+function cleanupCommunityPost(value: string, locale: QuoteAnalyzerLocale) {
+  let clean = value
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\s+([?.!,;:])/g, "$1")
+    .replace(/([?.!])([A-ZÀ-Ý])/g, "$1 $2")
+    .trim();
+
+  const matches = Array.from(clean.matchAll(repeatedOpeningPattern(locale)));
+  if (matches.length > 1) {
+    const lastIndex = matches[matches.length - 1]?.index ?? 0;
+    if (lastIndex > 0 && clean.length - lastIndex > 120) clean = clean.slice(lastIndex).trim();
+  }
+
+  return clean;
+}
+
+function asShortQuestionList(items: string[]) {
+  return pickUnique(
+    items
+      .map((item) =>
+        item
+          .replace(/^[\-•\s]+/, "")
+          .replace(/[?¿]+$/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+      )
+      .filter(Boolean)
+  ).slice(0, 3);
+}
+
+function localizedQuestionClose(locale: QuoteAnalyzerLocale, questions: string[]) {
+  const clean = asShortQuestionList(questions);
+  if (!clean.length) {
+    if (locale === "en") return "Before accepting, is there anything else you would ask the supplier to put in writing?";
+    if (locale === "es") return "Antes de aceptarlo, ¿hay algo más que pediríais por escrito al proveedor?";
+    if (locale === "fr") return "Avant de l'accepter, y a-t-il autre chose que vous demanderiez par écrit au prestataire ?";
+    return "Secondo voi c'è qualcos'altro che dovrei farmi mettere per iscritto prima di dire sì?";
+  }
+
+  if (locale === "en") return `Before accepting, would you ask about ${clean.join(", ")}?`;
+  if (locale === "es") return `Antes de aceptarlo, ¿preguntaríais por ${clean.join(", ")}?`;
+  if (locale === "fr") return `Avant de l'accepter, poseriez-vous des questions sur ${clean.join(", ")} ?`;
+  return `Secondo voi prima di dire sì dovrei chiedere meglio ${clean.join(", ")}?`;
+}
+
 function joinHumanList(items: string[], fallback: string) {
   const cleanItems = pickUnique(items.map((item) => item.replace(/\s+/g, " ").trim()).filter(Boolean)).slice(0, 3);
   return cleanItems.length ? cleanItems.join(", ") : fallback;
@@ -1821,20 +1890,24 @@ function formatCommunityDiscussion(
   city: string
 ) {
   const place = city.trim();
-  const summary = compactSentence(report.public_anonymized_summary || report.user_summary || result.summary);
+  const aiPost = cleanupCommunityPost(report.public_anonymized_summary || "", locale);
+  if (looksLikeCommunityPost(aiPost, locale)) return aiPost;
+
+  const summarySource = report.user_summary && report.user_summary !== report.public_anonymized_summary ? report.user_summary : result.summary;
+  const summary = compactSentence(summarySource);
   const included = joinHumanList(report.included_items, result.included[0] ?? result.topic.label[locale]);
   const unclear = joinHumanList(
     report.unclear_items.map((item) => item.label),
     report.possible_hidden_costs[0] ?? result.unclear[0] ?? ""
   );
-  const firstQuestion = report.questions_to_ask[0] ?? result.questions[0] ?? "";
+  const questions = pickUnique([...(report.questions_to_ask ?? []), ...(result.questions ?? [])]).slice(0, 3);
 
   if (locale === "en") {
     return [
       `Hi, I received this Italian ${serviceLabel.toLowerCase()} quote${place ? ` for an event in ${place}` : ""} and I would like to compare it before confirming.`,
       `From what I can read, the offer seems to include ${included}. ${summary}`,
       `I still have doubts about ${unclear || "a few conditions that are not written clearly"}.`,
-      `Would you ask the supplier anything else before accepting it${firstQuestion ? ` For example: ${firstQuestion}` : ""}`
+      localizedQuestionClose(locale, questions)
     ].join("\n\n");
   }
 
@@ -1842,25 +1915,25 @@ function formatCommunityDiscussion(
     return [
       `Hola, he recibido este presupuesto italiano de ${serviceLabel.toLowerCase()}${place ? ` para un evento en ${place}` : ""} y me gustaría compararlo antes de confirmar.`,
       `Por lo que leo, la oferta parece incluir ${included}. ${summary}`,
-      `Todavia tengo dudas sobre ${unclear || "algunas condiciones que no estan escritas con claridad"}.`,
-      `Antes de aceptarlo, ¿qué preguntaríais al proveedor${firstQuestion ? `à Por ejemplo: ${firstQuestion}` : "?"}`
+      `Todavía tengo dudas sobre ${unclear || "algunas condiciones que no están escritas con claridad"}.`,
+      localizedQuestionClose(locale, questions)
     ].join("\n\n");
   }
 
   if (locale === "fr") {
     return [
-      `Bonjour, j'ai reçu ce devis italien de ${serviceLabel.toLowerCase()}${place ? ` pour un événement  a ${place}` : ""} et j'aimerais le comparer avant de confirmer.`,
+      `Bonjour, j'ai reçu ce devis italien de ${serviceLabel.toLowerCase()}${place ? ` pour un événement à ${place}` : ""} et j'aimerais le comparer avant de confirmer.`,
       `D'après ce que je lis, l'offre semble inclure ${included}. ${summary}`,
       `J'ai encore des doutes sur ${unclear || "certaines conditions qui ne sont pas assez claires"}.`,
-      `Avant de l'accepter, que demanderiez-vous au prestataire${firstQuestion ? ` Par exemple : ${firstQuestion}` : ""}`
+      localizedQuestionClose(locale, questions)
     ].join("\n\n");
   }
 
   return [
-    `Ciao, ho ricevuto questo preventivo per ${serviceLabel.toLowerCase()}${place ? `  a ${place}` : ""} e prima di confermare vorrei un parere da chi ci è già passato.`,
+    `Ciao, ho ricevuto questo preventivo per ${serviceLabel.toLowerCase()}${place ? ` a ${place}` : ""} e prima di confermare vorrei un parere da chi ci è già passato.`,
     `Da quello che leggo, l'offerta sembra includere ${included}. ${summary}`,
     `Mi restano però alcuni dubbi su ${unclear || "alcune condizioni non scritte in modo chiaro"}.`,
-    `Secondo voi cosa dovrei farmi mettere per iscritto prima di dire sì${firstQuestion ? ` Ad esempio: ${firstQuestion}` : ""}`
+    localizedQuestionClose(locale, questions)
   ].join("\n\n");
 }
 
@@ -2221,15 +2294,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         "oe_quote_draft",
         JSON.stringify({
           title: draftTitle,
-          content: [
-            communityDiscussion,
-            "",
-            formCopy.missingTitle,
-            ...displayReport.missing_items.slice(0, 5).map((item) => `- ${item.label}`),
-            "",
-            copy.questions,
-            ...displayReport.questions_to_ask.slice(0, 6).map((item) => `- ${item}`)
-          ].join("\n"),
+          content: communityDiscussion,
           categorySlug: result.topic.categorySlug,
           postType: "Preventivo",
           eventPhase: "scelta-fornitori"

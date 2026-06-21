@@ -33,14 +33,46 @@ const quickBenefits = [
 ];
 
 const supplierBubbles = [
-  { slug: "location", label: "Location", short: "LO", tone: "from-[#F7D6E4] to-[#FFF3EC]" },
-  { slug: "musica", label: "Musica", short: "MU", tone: "from-[#EADCFB] to-[#FFF3EC]" },
-  { slug: "intrattenimento", label: "Intrattenimento", short: "IN", tone: "from-[#FFE2D2] to-[#F8D8E7]" },
-  { slug: "catering-e-gastronomia", label: "Catering", short: "CA", tone: "from-[#F9D7C3] to-[#FFF6D8]" },
-  { slug: "event-planner", label: "Planner", short: "PL", tone: "from-[#E8E0F8] to-[#F9D8E6]" },
-  { slug: "fotografi-e-videomaker", label: "Foto e video", short: "FV", tone: "from-[#FFE7D5] to-[#ECE4FF]" },
-  { slug: "fioristi-allestimenti-floreali-e-verde", label: "Fiori", short: "FI", tone: "from-[#DDEEDC] to-[#FDE2EC]" },
-  { slug: "tecnici-e-allestitori", label: "Allestimenti", short: "AL", tone: "from-[#E6E0DA] to-[#FFE4D8]" }
+  {
+    slug: "location",
+    label: "Location",
+    image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "musica",
+    label: "Musica",
+    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "intrattenimento",
+    label: "Intrattenimento",
+    image: "https://images.unsplash.com/photo-1505236858219-8359eb29e329?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "catering-e-gastronomia",
+    label: "Catering",
+    image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "event-planner",
+    label: "Planner",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "fotografi-e-videomaker",
+    label: "Foto e video",
+    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "fioristi-allestimenti-floreali-e-verde",
+    label: "Fiori",
+    image: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=240&q=80"
+  },
+  {
+    slug: "tecnici-e-allestitori",
+    label: "Allestimenti",
+    image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=240&q=80"
+  }
 ];
 
 const flowSteps = [
@@ -175,11 +207,11 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
                   aria-label={`Cerca fornitori: ${item.label}`}
                 >
                   <span
-                    className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full border bg-gradient-to-br text-lg font-black tracking-[0.05em] shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
+                    className={`mx-auto block h-20 w-20 overflow-hidden rounded-full border bg-petal shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
                       isActive ? "border-violet-cta ring-4 ring-blush" : "border-line"
-                    } ${item.tone}`}
+                    }`}
                   >
-                    <span className="rounded-full bg-white/85 px-3 py-2 text-ink shadow-sm">{item.short}</span>
+                    <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   </span>
                   <span className="mt-3 block min-h-[2.4rem] text-sm font-bold leading-tight text-ink group-hover:text-violet-cta">{item.label}</span>
                 </Link>
@@ -200,20 +232,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
         </div>
       </section>
 
-      <section id="modulo-fornitori" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-7 grid gap-4 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
-          <div>
-            <SectionEyebrow>Modulo completo</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-              Prenota più fornitori partendo da un brief unico.
-            </h2>
-          </div>
-          <p className="text-base leading-8 text-muted">
-            Se invii una richiesta di preventivo tramite una scheda Vibes Planner, potrai essere ricontattato
-            direttamente dal fornitore. Ti consigliamo di contattare solo i profili davvero coerenti con zona, budget e
-            tipo di evento.
-          </p>
-        </div>
+      <section id="modulo-fornitori" className="mx-auto max-w-7xl scroll-mt-10 px-4 py-12 sm:px-6 lg:px-8">
         <SupplierTaxonomyRequestWizard initialCategorySlug={selectedCategorySlug} />
       </section>
 

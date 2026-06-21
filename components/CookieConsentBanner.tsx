@@ -25,6 +25,8 @@ declare global {
 }
 
 const STORAGE_KEY = "organizzaevento_cookie_consent_v1";
+const COOKIE_KEY = "organizzaevento_cookie_consent";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 180;
 
 const copy = {
   it: {
@@ -156,13 +158,29 @@ function loadGoogleAnalytics(measurementId: string) {
 function readSavedConsent() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as ConsentValue;
-    if (parsed.version !== 1 || typeof parsed.statistics !== "boolean") return null;
-    return parsed;
+    if (raw) {
+      const parsed = JSON.parse(raw) as ConsentValue;
+      if (parsed.version === 1 && typeof parsed.statistics === "boolean") return parsed;
+    }
   } catch {
-    return null;
+    // Fall through to the technical cookie fallback.
   }
+
+  const cookieValue = document.cookie
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith(`${COOKIE_KEY}=`))
+    ?.split("=")[1];
+
+  if (cookieValue === "statistics") {
+    return { version: 1, statistics: true, savedAt: new Date().toISOString() };
+  }
+
+  if (cookieValue === "essential") {
+    return { version: 1, statistics: false, savedAt: new Date().toISOString() };
+  }
+
+  return null;
 }
 
 function saveConsent(statistics: boolean) {
@@ -171,7 +189,12 @@ function saveConsent(statistics: boolean) {
     statistics,
     savedAt: new Date().toISOString()
   };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    // The technical cookie below keeps the banner dismissible when localStorage is blocked.
+  }
+  document.cookie = `${COOKIE_KEY}=${statistics ? "statistics" : "essential"}; Max-Age=${COOKIE_MAX_AGE}; Path=/; SameSite=Lax`;
   return value;
 }
 
@@ -218,6 +241,8 @@ export function CookieConsentBanner({ measurementId }: CookieConsentBannerProps)
   }, []);
 
   function commit(nextStatistics: boolean) {
+    setVisible(false);
+    setCustomizing(false);
     saveConsent(nextStatistics);
     setStatistics(nextStatistics);
     updateGoogleConsent(nextStatistics);
@@ -226,8 +251,6 @@ export function CookieConsentBanner({ measurementId }: CookieConsentBannerProps)
     } else {
       deleteAnalyticsCookies();
     }
-    setVisible(false);
-    setCustomizing(false);
   }
 
   if (!mounted || !visible) return null;

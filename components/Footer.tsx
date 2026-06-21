@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -15,35 +15,31 @@ export function Footer() {
       ? {
           label: "Cerco Fornitori",
           title: "Trova fornitori con AI e Vibes Planner.",
-          text: "Apri il modulo completo: scegli il primo fornitore, aggiungi le altre categorie e mantieni sempre attivi zona, invitati e budget.",
-          button: "Cerco Fornitori",
-          link: "Apri modulo completo"
+          text: "Scegli il primo fornitore, aggiungi le altre categorie e mantieni sempre attivi zona, invitati e budget.",
+          button: "Cerco Fornitori"
         }
       : locale === "en"
         ? {
             label: "Find Suppliers",
             title: "Find Italian suppliers with AI and Vibes Planner.",
-            text: "Open the full module: choose your first supplier, add more categories and keep area, guests and budget active.",
-            button: "Find Suppliers",
-            link: "Open full module"
+            text: "Choose your first supplier, add more categories and keep area, guests and budget active.",
+            button: "Find Suppliers"
           }
         : locale === "es"
           ? {
               label: "Buscar Proveedores",
               title: "Encuentra proveedores italianos con AI y Vibes Planner.",
-              text: "Abre el módulo completo: elige el primer proveedor, añade categorías y conserva zona, invitados y presupuesto.",
-              button: "Buscar Proveedores",
-              link: "Abrir módulo completo"
+              text: "Elige el primer proveedor, anade categorias y conserva zona, invitados y presupuesto.",
+              button: "Buscar Proveedores"
             }
           : {
               label: "Trouver des Prestataires",
               title: "Trouvez des prestataires italiens avec AI et Vibes Planner.",
-              text: "Ouvrez le module complet : choisissez le premier prestataire, ajoutez des catégories et gardez zone, invités et budget.",
-              button: "Trouver des Prestataires",
-              link: "Ouvrir le module complet"
+              text: "Choisissez le premier prestataire, ajoutez des categories et gardez zone, invites et budget.",
+              button: "Trouver des Prestataires"
             };
   const cookiePreferencesLabel =
-    locale === "it" ? "Preferenze cookie" : locale === "en" ? "Cookie preferences" : locale === "es" ? "Preferencias de cookies" : "Préférences cookies";
+    locale === "it" ? "Preferenze cookie" : locale === "en" ? "Cookie preferences" : locale === "es" ? "Preferencias de cookies" : "Preferences cookies";
   const isLegalPage = [
     "/privacy",
     "/privacy-policy",
@@ -95,16 +91,16 @@ export function Footer() {
             {locale === "it" ? "Domande" : locale === "es" ? "Preguntas" : "Questions"}
           </Link>
           <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "realPrices")}>
-            {locale === "it" ? "Quanto costa" : locale === "en" ? "How much does it cost" : locale === "es" ? "Cuánto cuesta" : "Combien ça coûte"}
+            {locale === "it" ? "Quanto costa" : locale === "en" ? "How much does it cost" : locale === "es" ? "Cuanto cuesta" : "Combien ca coute"}
           </Link>
           <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "topics")}>
-            {locale === "it" ? "Eventi" : locale === "en" ? "Events" : locale === "es" ? "Eventos" : "Événements"}
+            {locale === "it" ? "Eventi" : locale === "en" ? "Events" : locale === "es" ? "Eventos" : "Evenements"}
           </Link>
           <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "magazine")}>
             Magazine
           </Link>
           <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "eventGuides")}>
-            {locale === "it" ? "Guide pratiche" : locale === "en" ? "Practical guides" : locale === "es" ? "Guías prácticas" : "Guides pratiques"}
+            {locale === "it" ? "Guide pratiche" : locale === "en" ? "Practical guides" : locale === "es" ? "Guias practicas" : "Guides pratiques"}
           </Link>
           <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "localSuppliers")}>
             {locale === "it" ? "Fornitori locali" : locale === "en" ? "Local suppliers" : locale === "es" ? "Proveedores locales" : "Prestataires locaux"}
@@ -122,13 +118,11 @@ export function Footer() {
           <h2 className="mt-2 text-lg font-semibold leading-tight text-ink">{supplierFinderCopy.title}</h2>
           <p className="mt-2 text-sm leading-6 text-muted">{supplierFinderCopy.text}</p>
           <Link
-            className="focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-hover"
+            className="focus-ring mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-violet-cta px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-hover"
             href={localizedStaticPath(locale, "findSuppliers")}
           >
+            <Image src="/partners/vibes-planner/logo.jpg" alt="" width={24} height={24} className="h-6 w-6 rounded-md bg-white object-contain" />
             {supplierFinderCopy.button}
-          </Link>
-          <Link className="mt-3 inline-flex text-xs font-semibold text-violet-cta hover:text-violet-hover" href={localizedStaticPath(locale, "findSuppliers")}>
-            {supplierFinderCopy.link}
           </Link>
         </section>
 
@@ -143,7 +137,7 @@ export function Footer() {
           </p>
           <nav aria-label="Link legali" className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
             <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "rules")}>
-              {locale === "it" ? "Regole" : locale === "en" ? "Rules" : locale === "es" ? "Reglas" : "Règles"}
+              {locale === "it" ? "Regole" : locale === "en" ? "Rules" : locale === "es" ? "Reglas" : "Regles"}
             </Link>
             <Link className="focus-ring hover:text-ink" href="/privacy-policy/">
               Privacy Policy
@@ -152,7 +146,7 @@ export function Footer() {
               Cookie Policy
             </Link>
             <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "terms")}>
-              {locale === "it" ? "Termini" : locale === "en" ? "Terms" : locale === "es" ? "Términos" : "Conditions"}
+              {locale === "it" ? "Termini" : locale === "en" ? "Terms" : locale === "es" ? "Terminos" : "Conditions"}
             </Link>
             <Link className="focus-ring hover:text-ink" href="/condizioni-commerciali/">
               Condizioni commerciali

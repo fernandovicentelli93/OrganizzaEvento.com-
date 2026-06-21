@@ -222,7 +222,7 @@ function rankedSuppliers(cards: VibesSupplierCard[], maxResults: number, payload
     if (payload.province) {
       const areaMatches = prepared
         .filter((card) => supplierMatchesRequestedProvince(card, payload.province))
-        .sort((a, b) => b.score - a.score || sortByDistance(a, b));
+        .sort(sortByDistance);
       const otherMatches = prepared
         .filter((card) => !supplierMatchesRequestedProvince(card, payload.province) && typeof card.distanceKm === "number")
         .sort(sortByDistance);
@@ -771,13 +771,24 @@ function normalizePayload(payload: Partial<SearchPayload>): SearchPayload {
   };
 }
 
+async function payloadWithRequestedGeoPoint(payload: SearchPayload): Promise<SearchPayload> {
+  if (userGeoPoint(payload)) return payload;
+
+  const addressCandidate = isSpecificStreetAddress(payload.province) ? payload.province : payload.query;
+  if (!addressCandidate || !isSpecificStreetAddress(addressCandidate)) return payload;
+
+  const point = await geocodeItalianAddress(addressCandidate);
+  return point ? { ...payload, lat: point.lat, lng: point.lng } : payload;
+}
+
 async function runSupplierSearch(payload: SearchPayload) {
   try {
-    const geoPoint = userGeoPoint(payload);
-    const explicitArea = payload.province || findItalianAreaLabel(payload.query);
+    const geoReadyPayload = await payloadWithRequestedGeoPoint(payload);
+    const geoPoint = userGeoPoint(geoReadyPayload);
+    const explicitArea = findItalianAreaLabel(payload.province) || payload.province || findItalianAreaLabel(payload.query);
     const hasInitialIntent = [payload.query, payload.category, payload.subcategory, payload.eventType, payload.province].some(Boolean);
     const geoProvince = geoPoint && !hasInitialIntent ? nearestItalianProvince(geoPoint).label : "";
-    const basePayload = explicitArea || geoProvince ? { ...payload, province: explicitArea || geoProvince } : payload;
+    const basePayload = explicitArea || geoProvince ? { ...geoReadyPayload, province: explicitArea || geoProvince } : geoReadyPayload;
     const ai = await classifyWithOpenAI(basePayload);
     const merged: SearchPayload = {
       ...basePayload,

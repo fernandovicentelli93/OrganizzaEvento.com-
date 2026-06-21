@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SupplierTaxonomyRequestWizard } from "@/components/SupplierTaxonomyRequestWizard";
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_LINK, VIBES_PLANNER_URL } from "@/lib/constants";
 import { selfAlternates } from "@/lib/i18n-routing";
+import { VIBES_TAXONOMY } from "@/lib/vibes-taxonomy";
 
 export const metadata: Metadata = {
   title: "Trova fornitori per eventi in Italia | OrganizzaEvento",
@@ -15,8 +16,19 @@ export const metadata: Metadata = {
 const quickBenefits = [
   "Parti dal fornitore che ti serve davvero",
   "Zona, invitati e budget restano sempre attivi",
-  "Puoi aggiungere più categorie senza riscrivere tutto",
+  "Puoi aggiungere piu categorie senza riscrivere tutto",
   "I fornitori suggeriti arrivano da vetrine Vibes Planner"
+];
+
+const supplierBubbles = [
+  { slug: "location", label: "Location", short: "LO", tone: "from-[#F7D6E4] to-[#FFF3EC]" },
+  { slug: "musica", label: "Musica", short: "MU", tone: "from-[#EADCFB] to-[#FFF3EC]" },
+  { slug: "intrattenimento", label: "Intrattenimento", short: "IN", tone: "from-[#FFE2D2] to-[#F8D8E7]" },
+  { slug: "catering-e-gastronomia", label: "Catering", short: "CA", tone: "from-[#F9D7C3] to-[#FFF6D8]" },
+  { slug: "event-planner", label: "Planner", short: "PL", tone: "from-[#E8E0F8] to-[#F9D8E6]" },
+  { slug: "fotografi-e-videomaker", label: "Foto e video", short: "FV", tone: "from-[#FFE7D5] to-[#ECE4FF]" },
+  { slug: "fioristi-allestimenti-floreali-e-verde", label: "Fiori", short: "FI", tone: "from-[#DDEEDC] to-[#FDE2EC]" },
+  { slug: "tecnici-e-allestitori", label: "Allestimenti", short: "AL", tone: "from-[#E6E0DA] to-[#FFE4D8]" }
 ];
 
 const flowSteps = [
@@ -41,15 +53,16 @@ const flowSteps = [
 const faqs = [
   {
     question: "Devo registrarmi per cercare fornitori?",
-    answer: "No. Puoi iniziare senza registrazione obbligatoria. L'iscrizione servirà solo per gestire meglio profilo, richieste e storico."
+    answer: "No. Puoi iniziare senza registrazione obbligatoria. L'iscrizione serve solo per gestire meglio profilo, richieste e storico."
   },
   {
     question: "Posso partire dalla musica invece che dalla location?",
-    answer: "Sì. Il modulo ti fa scegliere il primo fornitore: musica, location, planner, catering, foto e video o un'altra categoria."
+    answer: "Si. Il modulo ti fa scegliere il primo fornitore: musica, location, planner, catering, foto e video o un'altra categoria."
   },
   {
     question: "Che ruolo ha Vibes Planner?",
-    answer: "OrganizzaEvento resta una community indipendente. La collaborazione con Vibes Planner serve a leggere categorie e vetrine reali del settore eventi."
+    answer:
+      "OrganizzaEvento resta una community indipendente. Se invii una richiesta tramite una scheda Vibes Planner, potrai essere ricontattato direttamente dal fornitore."
   }
 ];
 
@@ -57,7 +70,19 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">{children}</p>;
 }
 
-export default function SupplierLandingPage() {
+function sanitizeSupplierCategorySlug(value: string | undefined) {
+  if (!value) return "location";
+  return VIBES_TAXONOMY.some((item) => item.slug === value) ? value : "location";
+}
+
+type SupplierLandingPageProps = {
+  searchParams?: Promise<{ categoria?: string }>;
+};
+
+export default async function SupplierLandingPage({ searchParams }: SupplierLandingPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const selectedCategorySlug = sanitizeSupplierCategorySlug(resolvedSearchParams?.categoria);
+
   return (
     <main className="bg-[#FFFDF7]">
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 lg:px-8">
@@ -101,13 +126,39 @@ export default function SupplierLandingPage() {
                 Chiedi alla community
               </Link>
             </div>
+
+            <div className="mt-9">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Parti dal tipo di fornitore</p>
+              <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4 xl:grid-cols-8">
+                {supplierBubbles.map((item) => {
+                  const isActive = selectedCategorySlug === item.slug;
+                  return (
+                    <Link
+                      key={item.slug}
+                      href={`/trova-fornitori?categoria=${item.slug}#modulo-fornitori`}
+                      className="group text-center"
+                      aria-label={`Cerca fornitori: ${item.label}`}
+                    >
+                      <span
+                        className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full border bg-gradient-to-br text-lg font-black tracking-[0.05em] shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
+                          isActive ? "border-violet-cta ring-4 ring-blush" : "border-line"
+                        } ${item.tone}`}
+                      >
+                        <span className="rounded-full bg-white/85 px-3 py-2 text-ink shadow-sm">{item.short}</span>
+                      </span>
+                      <span className="mt-3 block text-sm font-bold leading-snug text-ink group-hover:text-violet-cta">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
             <div className="grid gap-3 sm:grid-cols-2">
               {quickBenefits.map((item) => (
                 <div key={item} className="rounded-md border border-line bg-cream p-4">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-violet-cta text-sm font-bold text-white">✓</span>
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-violet-cta text-[11px] font-bold text-white">OK</span>
                   <p className="mt-3 text-sm font-bold leading-6 text-ink">{item}</p>
                 </div>
               ))}
@@ -132,15 +183,16 @@ export default function SupplierLandingPage() {
           <div>
             <SectionEyebrow>Modulo completo</SectionEyebrow>
             <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-              Prenota più fornitori partendo da un brief unico.
+              Prenota piu fornitori partendo da un brief unico.
             </h2>
           </div>
           <p className="text-base leading-8 text-muted">
-            Questo è il modulo completo: numero invitati, via o zona evento, budget e periodo restano attivi per tutte
-            le ricerche. La parte musicale apre campi dedicati per formazione, musicista e genere.
+            Se invii una richiesta di preventivo tramite una scheda Vibes Planner, potrai essere ricontattato
+            direttamente dal fornitore. Ti consigliamo di contattare solo i profili davvero coerenti con zona, budget e
+            tipo di evento.
           </p>
         </div>
-        <SupplierTaxonomyRequestWizard />
+        <SupplierTaxonomyRequestWizard initialCategorySlug={selectedCategorySlug} />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">

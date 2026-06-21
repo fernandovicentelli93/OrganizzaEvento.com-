@@ -144,6 +144,12 @@ function formatEuro(value: number | null) {
   return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value);
 }
 
+function scrollToElementTop(element: HTMLElement | null, offset = 96) {
+  if (!element || typeof window === "undefined") return;
+  const top = element.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
 function scoreFromLiveSupplier(supplier: VibesSupplierCard, index: number, isLocation: boolean) {
   const scoreBoost = Math.min(1.35, Math.max(0, supplier.score) / 3200);
   const premiumBoost = supplier.premium ? 0.18 : 0;
@@ -245,13 +251,11 @@ function buildLiveSupplierQuery(step: SupplierStep, category: VibesTaxonomyCateg
 function SupplierCard({
   supplier,
   recommended,
-  isLocation,
-  onOpen
+  isLocation
 }: {
   supplier: SupplierSeed;
   recommended: boolean;
   isLocation: boolean;
-  onOpen: (supplier: SupplierSeed) => void;
 }) {
   return (
     <article
@@ -280,16 +284,17 @@ function SupplierCard({
         <p className="mt-2 text-[11px] font-semibold text-muted">
           {isLocation ? "Voto basato su distanza, categoria e richiesta." : "Voto basato su match AI e copertura del servizio."}
         </p>
-        <button
-          type="button"
-          onClick={() => onOpen(supplier)}
+        <a
+          href={supplier.url ?? VIBES_PLANNER_CLIENT_REQUEST_URL}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
           className={`mt-auto inline-flex min-h-11 items-center justify-center rounded-md px-3 py-2 text-sm font-bold transition ${
             recommended ? "bg-violet-cta text-white hover:bg-violet-hover" : "border border-line bg-cream text-ink hover:bg-petal"
           }`}
         >
           <img src={vibesLogoPath} alt="" className="mr-2 h-5 w-5 rounded object-cover" loading="lazy" decoding="async" />
           Preventivo gratuito
-        </button>
+        </a>
       </div>
     </article>
   );
@@ -333,6 +338,39 @@ function ChipGroup({
   );
 }
 
+function SearchProgress({ active }: { active: boolean }) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!active) {
+      setProgress(0);
+      return;
+    }
+
+    setProgress(8);
+    const interval = window.setInterval(() => {
+      setProgress((current) => Math.min(94, current + Math.max(2, Math.round((100 - current) / 7))));
+    }, 220);
+
+    return () => window.clearInterval(interval);
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <div className="mt-4 rounded-md border border-line bg-white p-4">
+      <div className="flex items-center justify-between gap-3 text-xs font-bold uppercase tracking-[0.14em] text-muted">
+        <span>Caricamento fornitori</span>
+        <span className="text-violet-cta">{progress}%</span>
+      </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-cream">
+        <div className="h-full rounded-full bg-violet-cta transition-all duration-300" style={{ width: `${progress}%` }} />
+      </div>
+      <p className="mt-3 text-sm leading-6 text-muted">Stiamo confrontando categoria, zona, budget e copertura dei profili Vibes Planner.</p>
+    </div>
+  );
+}
+
 export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location" }: SupplierTaxonomyRequestWizardProps) {
   const normalizedInitialCategorySlug = VIBES_TAXONOMY.some((item) => item.slug === initialCategorySlug)
     ? initialCategorySlug
@@ -348,7 +386,6 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
   const [steps, setSteps] = useState<SupplierStep[]>([createStep(1, normalizedInitialCategorySlug)]);
   const [liveSearches, setLiveSearches] = useState<Record<number, LiveSearchState>>({});
   const [showBudgetWarning, setShowBudgetWarning] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierSeed | null>(null);
   const [scrollToStepId, setScrollToStepId] = useState<number | null>(null);
   const [openSubcategoryStepId, setOpenSubcategoryStepId] = useState<number | null>(null);
   const wizardTopRef = useRef<HTMLElement | null>(null);
@@ -404,9 +441,9 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
     if (scrollToStepId === null) return;
     const timer = window.setTimeout(() => {
       const target = stepRefs.current[scrollToStepId] ?? wizardTopRef.current;
-      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrollToElementTop(target, 112);
       setScrollToStepId(null);
-    }, 60);
+    }, 80);
     return () => window.clearTimeout(timer);
   }, [scrollToStepId, steps]);
 
@@ -420,7 +457,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
     hasAutoRevealedCategories.current = true;
 
     const timer = window.setTimeout(() => {
-      categoryStartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollToElementTop(categoryStartRef.current, 118);
     }, 180);
 
     return () => window.clearTimeout(timer);
@@ -489,7 +526,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
       });
 
       void Promise.all(searches);
-    }, 650);
+    }, 320);
 
     return () => {
       window.clearTimeout(timer);
@@ -548,79 +585,6 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
             >
               Ho capito
             </button>
-          </div>
-        </div>
-      ) : null}
-
-      {selectedSupplier ? (
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-ink/50 p-4"
-          onClick={() => setSelectedSupplier(null)}
-        >
-          <div
-            className="w-full max-w-xl overflow-hidden rounded-md border border-line bg-white shadow-soft"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3 p-5 pb-3 sm:p-6 sm:pb-4">
-                <img src={vibesLogoPath} alt="" className="h-10 w-10 rounded-md object-cover" loading="lazy" decoding="async" />
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Vetrina Vibes Planner</p>
-                  <h3 className="mt-1 text-xl font-semibold leading-tight text-ink">{selectedSupplier.name}</h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedSupplier(null)}
-                className="m-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-line bg-cream text-lg font-bold text-ink transition hover:bg-petal"
-                aria-label="Chiudi popup fornitore"
-              >
-                x
-              </button>
-            </div>
-            <div className="border-y border-line bg-cream p-5 sm:p-6">
-              <div className="grid gap-4 sm:grid-cols-[160px_1fr]">
-                <div className="relative h-36 overflow-hidden rounded-md bg-petal">
-                  {selectedSupplier.imageUrl ? (
-                    <img
-                      src={selectedSupplier.imageUrl}
-                      alt={selectedSupplier.name}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-violet-cta">
-                      Vibes Planner
-                    </div>
-                  )}
-                  <span className="absolute right-2 top-2 rounded-md bg-ink px-2 py-1 text-xs font-bold text-white">
-                    {selectedSupplier.score}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-ink">{selectedSupplier.meta}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{selectedSupplier.note}</p>
-                  {selectedSupplier.premium ? (
-                    <span className="mt-3 inline-flex rounded-md bg-violet-cta px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
-                      Premium Vibes Club
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-            <p className="px-5 pt-4 text-sm leading-7 text-muted sm:px-6">
-              Per evitare blocchi del banner cookie esterno, la vetrina si apre direttamente su Vibes Planner.
-            </p>
-            <a
-              href={selectedSupplier.url ?? VIBES_PLANNER_CLIENT_REQUEST_URL}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className="mx-5 mb-5 mt-4 inline-flex min-h-12 items-center justify-center rounded-md bg-violet-cta px-5 py-3 text-sm font-bold text-white transition hover:bg-violet-hover sm:mx-6 sm:mb-6"
-            >
-              <img src={vibesLogoPath} alt="" className="mr-2 h-5 w-5 rounded object-cover" loading="lazy" decoding="async" />
-              Apri vetrina e richiedi preventivo
-            </a>
           </div>
         </div>
       ) : null}
@@ -1071,10 +1035,8 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                     <div className="mt-4 rounded-md border border-dashed border-line bg-white p-5 text-sm leading-7 text-muted">
                       Completa il brief e scegli almeno una sottocategoria. I fornitori compaiono solo quando la richiesta ha abbastanza contesto.
                     </div>
-                  ) : isSearching && !suppliers.length ? (
-                    <div className="mt-4 rounded-md border border-line bg-white p-5 text-sm font-semibold text-ink">
-                      Sto cercando profili Vibes Planner coerenti con la tua richiesta...
-                    </div>
+                  ) : isSearching ? (
+                    <SearchProgress active />
                   ) : suppliers.length ? (
                     <div className="mt-4 flex snap-x gap-3 overflow-x-auto pb-3">
                       {suppliers.map((supplier, supplierIndex) => (
@@ -1083,7 +1045,6 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                           supplier={supplier}
                           recommended={supplierIndex === 0}
                           isLocation={category.slug === "location"}
-                          onOpen={setSelectedSupplier}
                         />
                       ))}
                     </div>

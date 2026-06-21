@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SITE_NAME, SUPPORT_EMAIL, SUPPORT_EMAIL_LINK, VIBES_PLANNER_URL } from "@/lib/constants";
+import { SITE_NAME, VIBES_PLANNER_URL } from "@/lib/constants";
 import { footerCopy, localeFromPathname, localizedStaticPath } from "@/lib/i18n-basic";
 
 export function Footer() {
@@ -40,6 +40,14 @@ export function Footer() {
             };
   const cookiePreferencesLabel =
     locale === "it" ? "Preferenze cookie" : locale === "en" ? "Cookie preferences" : locale === "es" ? "Preferencias de cookies" : "Preferences cookies";
+  const supportText =
+    locale === "it"
+      ? "Per assistenza usa il widget supporto in basso a destra."
+      : locale === "en"
+        ? "For support, use the help widget in the lower-right corner."
+        : locale === "es"
+          ? "Para recibir ayuda, usa el widget de soporte en la esquina inferior derecha."
+          : "Pour obtenir de l'aide, utilisez le widget de support en bas a droite.";
   const isLegalPage = [
     "/privacy",
     "/privacy-policy",
@@ -128,13 +136,7 @@ export function Footer() {
 
         <div>
           <p className="font-semibold text-ink">{copy.contacts}</p>
-          <p className="mt-2 leading-6">
-            {copy.contactText}{" "}
-            <a className="font-semibold text-violet-cta hover:text-violet-hover" href={SUPPORT_EMAIL_LINK}>
-              {SUPPORT_EMAIL}
-            </a>
-            .
-          </p>
+          <p className="mt-2 leading-6">{supportText}</p>
           <nav aria-label="Link legali" className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
             <Link className="focus-ring hover:text-ink" href={localizedStaticPath(locale, "rules")}>
               {locale === "it" ? "Regole" : locale === "en" ? "Rules" : locale === "es" ? "Reglas" : "Regles"}

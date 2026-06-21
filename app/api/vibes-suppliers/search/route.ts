@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   VIBES_SUPPLIER_CATEGORIES,
   categoryFromSearch,
@@ -25,6 +25,7 @@ const MIN_LOCAL_RESULTS_BEFORE_SKIPPING_NATIONWIDE = 15;
 const MAX_EXACT_ADDRESS_DISTANCE_CHECKS = 10;
 const MAX_SELECTED_CATEGORY_PAGES = 5;
 const MAX_FALLBACK_CATEGORY_PAGES = 3;
+const MIN_MOBILE_CATEGORY_RESULTS = 8;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -215,17 +216,18 @@ function rankedSuppliers(cards: VibesSupplierCard[], maxResults: number, payload
   if (payload && userGeoPoint(payload)) {
     const sortByDistance = (a: VibesSupplierCard, b: VibesSupplierCard) =>
       (a.distanceKm ?? 99999) - (b.distanceKm ?? 99999) ||
-      Number(b.premium) - Number(a.premium) ||
       b.score - a.score ||
       a.name.localeCompare(b.name, "it");
+    const sortPremiumThenDistance = (a: VibesSupplierCard, b: VibesSupplierCard) =>
+      Number(b.premium) - Number(a.premium) || sortByDistance(a, b);
 
     if (payload.province) {
       const areaMatches = prepared
         .filter((card) => supplierMatchesRequestedProvince(card, payload.province))
-        .sort(sortByDistance);
+        .sort(sortPremiumThenDistance);
       const otherMatches = prepared
         .filter((card) => !supplierMatchesRequestedProvince(card, payload.province) && typeof card.distanceKm === "number")
-        .sort(sortByDistance);
+        .sort(sortPremiumThenDistance);
       const withoutDistance = prepared
         .filter((card) => !supplierMatchesRequestedProvince(card, payload.province) && typeof card.distanceKm !== "number")
         .sort((a, b) => Number(b.premium) - Number(a.premium) || b.score - a.score || a.name.localeCompare(b.name, "it"));
@@ -234,7 +236,7 @@ function rankedSuppliers(cards: VibesSupplierCard[], maxResults: number, payload
 
     const withDistance = prepared
       .filter((card) => typeof card.distanceKm === "number")
-      .sort(sortByDistance);
+      .sort(sortPremiumThenDistance);
     const withoutDistance = prepared
       .filter((card) => typeof card.distanceKm !== "number")
       .sort((a, b) => Number(b.premium) - Number(a.premium) || b.score - a.score || a.name.localeCompare(b.name, "it"));
@@ -347,6 +349,34 @@ function dedupeSuppliers(cards: VibesSupplierCard[]) {
     seen.add(card.id);
     return true;
   });
+}
+
+function shouldCompleteWithNationwide(categorySlug: string | undefined) {
+  return Boolean(categorySlug && categorySlug !== "location");
+}
+
+function completeWithNationwideMobileSuppliers(
+  verifiedResults: VibesSupplierCard[],
+  candidates: VibesSupplierCard[],
+  payload: SearchPayload,
+  categorySlug: string | undefined
+) {
+  if (!shouldCompleteWithNationwide(categorySlug) || verifiedResults.length >= MIN_MOBILE_CATEGORY_RESULTS) {
+    return verifiedResults;
+  }
+
+  const seen = new Set(verifiedResults.map((card) => card.id));
+  const fillers = candidates
+    .filter((card) => !seen.has(card.id))
+    .slice(0, MIN_MOBILE_CATEGORY_RESULTS - verifiedResults.length)
+    .map((card) => ({
+      ...card,
+      serviceArea: "italy" as const,
+      serviceAreaLabel: areaLabel("italy", payload.locale),
+      score: card.score + 90
+    }));
+
+  return dedupeSuppliers([...verifiedResults, ...fillers]);
 }
 
 function compactProfileText(html: string) {
@@ -850,7 +880,12 @@ async function runSupplierSearch(payload: SearchPayload) {
       verifiedResults.push(...candidates);
     }
 
-    verifiedResults = dedupeSuppliers(verifiedResults);
+    verifiedResults = completeWithNationwideMobileSuppliers(
+      dedupeSuppliers(verifiedResults),
+      candidates,
+      merged,
+      selectedCategory?.slug
+    );
     const liveResults = rankedSuppliers(verifiedResults, MAX_VISIBLE_RESULTS, merged);
     const results = liveResults.length ? liveResults : rankedSuppliers(fallbackResults(merged), MAX_VISIBLE_RESULTS, merged);
 

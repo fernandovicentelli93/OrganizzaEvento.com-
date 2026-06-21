@@ -128,8 +128,8 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
   const selectedCategorySlug = sanitizeSupplierCategorySlug(resolvedSearchParams?.categoria);
 
   return (
-    <main className="bg-[#FFFDF7]">
-      <section className="mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 lg:px-8">
+    <main className="max-w-full overflow-x-hidden bg-[#FFFDF7]">
+      <section className="mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8">
         <header className="flex items-center justify-between gap-4 py-3">
           <Link href="/" className="inline-flex items-center gap-3" aria-label="Torna alla homepage OrganizzaEvento">
             <Image src="/brand/logo.png" alt="OrganizzaEvento" width={190} height={58} priority className="h-12 w-auto object-contain" />
@@ -146,10 +146,10 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
           </a>
         </header>
 
-        <div className="grid gap-8 py-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-end lg:py-12">
-          <div>
+        <div className="grid min-w-0 gap-6 py-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-end lg:py-12">
+          <div className="min-w-0">
             <SectionEyebrow>Cerco fornitori</SectionEyebrow>
-            <h1 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
               Trova i fornitori giusti senza ricominciare da zero ogni volta.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-muted sm:text-lg">
@@ -173,7 +173,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
 
           </div>
 
-          <div className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
+          <div className="min-w-0 rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
             <div className="grid gap-3 sm:grid-cols-2">
               {quickBenefits.map((item, index) => (
                 <div key={item.title} className="rounded-md border border-line bg-cream p-4">
@@ -186,7 +186,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
           </div>
         </div>
 
-        <div className="mt-4 rounded-md border border-line bg-white p-4 shadow-sm sm:p-6">
+        <div className="mt-4 min-w-0 rounded-md border border-line bg-white p-4 shadow-sm sm:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Fornitori prenotabili</p>
@@ -196,7 +196,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
               Ogni cerchio apre il modulo gia impostato sulla categoria giusta. Poi puoi aggiungere gli altri fornitori.
             </p>
           </div>
-          <div className="-mx-4 mt-6 flex gap-5 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
+          <div className="-mx-4 mt-6 flex max-w-[100vw] gap-5 overflow-x-auto px-4 pb-3 sm:mx-0 sm:max-w-full sm:px-0">
             {supplierBubbles.map((item) => {
               const isActive = selectedCategorySlug === item.slug;
               return (
@@ -232,7 +232,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
         </div>
       </section>
 
-      <section id="modulo-fornitori" className="mx-auto max-w-7xl scroll-mt-10 px-4 py-12 sm:px-6 lg:px-8">
+      <section id="modulo-fornitori" className="mx-auto max-w-7xl scroll-mt-10 px-2 py-8 sm:px-6 sm:py-12 lg:px-8">
         <SupplierTaxonomyRequestWizard initialCategorySlug={selectedCategorySlug} />
       </section>
 

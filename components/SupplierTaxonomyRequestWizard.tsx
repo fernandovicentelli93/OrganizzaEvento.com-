@@ -284,7 +284,7 @@ function SupplierCard({
 }) {
   return (
     <article
-      className={`flex min-h-[360px] min-w-[272px] snap-start flex-col rounded-md border bg-white p-4 shadow-sm sm:min-w-[292px] xl:min-w-[31%] ${
+      className={`flex min-h-[350px] w-[82vw] max-w-[292px] flex-none snap-start flex-col rounded-md border bg-white p-4 shadow-sm sm:w-[292px] ${
         recommended ? "border-violet-cta shadow-[0_14px_30px_rgba(201,86,123,0.16)]" : "border-line"
       }`}
     >
@@ -600,7 +600,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
   }
 
   return (
-    <section ref={wizardTopRef} className="overflow-visible rounded-md border border-line bg-white shadow-soft">
+    <section ref={wizardTopRef} className="max-w-full min-w-0 overflow-visible rounded-md border border-line bg-white shadow-soft">
       {showBudgetWarning ? (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/45 p-4">
           <div className="w-full max-w-md rounded-md border border-line bg-white p-6 shadow-soft">
@@ -623,8 +623,8 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
 
       <div className="border-b border-line bg-petal/70 px-5 py-6 sm:px-7 lg:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-cta">Booking fornitori</p>
-        <div className="mt-4 grid gap-5 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
-          <div>
+        <div className="mt-4 grid min-w-0 gap-5 xl:grid-cols-[1.05fr_0.95fr] xl:items-start">
+          <div className="min-w-0">
             <h2 className="max-w-3xl text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-3xl lg:text-4xl">
               Prenota uno o più fornitori senza riscrivere ogni volta gli stessi dati.
             </h2>
@@ -635,7 +635,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
             </p>
           </div>
 
-          <div className="rounded-md border border-line bg-white p-4 xl:mt-1">
+          <div className="min-w-0 rounded-md border border-line bg-white p-4 xl:mt-1">
             <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
               <span>Brief evento obbligatorio</span>
               <span className="text-violet-cta">{completedBriefFields}/6</span>
@@ -791,10 +791,10 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
         </div>
       ) : (
         <>
-      <div ref={categoryStartRef} className="border-b border-line bg-[#FFFDF7] p-4 sm:p-6 lg:p-8">
-        <div className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
-            <div>
+      <div ref={categoryStartRef} className="border-b border-line bg-[#FFFDF7] p-3 sm:p-6 lg:p-8">
+        <div className="min-w-0 rounded-md border border-line bg-white p-4 shadow-sm sm:p-6">
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] lg:items-start">
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">Partenza libera</p>
               <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Da chi vuoi iniziare</h3>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-muted">
@@ -816,7 +816,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
               </select>
             </label>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="-mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 xl:grid-cols-5">
             {starterCategorySlugs.map((slug) => {
               const item = categoryBySlug(slug);
               const isActive = steps[0].categorySlug === slug;
@@ -825,7 +825,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   key={slug}
                   type="button"
                   onClick={() => startFromCategory(slug)}
-                  className={`min-h-[78px] rounded-md border px-4 py-3 text-left text-sm font-bold leading-snug transition ${
+                  className={`min-h-[68px] min-w-[154px] rounded-md border px-3 py-3 text-left text-sm font-bold leading-snug transition sm:min-w-0 sm:px-4 ${
                     isActive
                       ? "border-violet-cta bg-violet-cta text-white shadow-soft"
                       : "border-line bg-cream text-ink hover:border-violet-cta hover:bg-petal"
@@ -842,8 +842,8 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
         </div>
       </div>
 
-      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-5 bg-[#FFFDF7] p-4 sm:p-6 lg:p-8">
+      <div className="grid min-w-0 gap-0 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0 space-y-5 bg-[#FFFDF7] p-3 sm:p-6 lg:p-8">
           {steps.map((step, index) => {
             const category = categoryBySlug(step.categorySlug);
             const isMusic = category.slug === "musica";
@@ -865,7 +865,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                 ref={(node) => {
                   stepRefs.current[step.id] = node;
                 }}
-                className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5 lg:p-6"
+                className="min-w-0 rounded-md border border-line bg-white p-4 shadow-sm sm:p-5 lg:p-6"
               >
                 <div className="flex flex-col gap-3 border-b border-line pb-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex gap-3">
@@ -898,7 +898,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(180px,0.85fr)_minmax(160px,0.75fr)]">
+                <div className="mt-5 grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(180px,0.85fr)_minmax(160px,0.75fr)]">
                   <div className="block">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold text-ink">Sottocategorie *</span>
@@ -906,16 +906,16 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                         {step.subcategories.length ? `${step.subcategories.length} selezionate` : "obbligatorio"}
                       </span>
                     </div>
-                    <div className="relative mt-2">
+                    <div className="relative mt-2 min-w-0">
                       <button
                         type="button"
                         onClick={() => setOpenSubcategoryStepId(openSubcategoryStepId === step.id ? null : step.id)}
-                        className="flex min-h-[48px] w-full items-center justify-between gap-3 rounded-md border border-line bg-cream px-4 py-3 text-left text-sm font-semibold text-ink outline-none transition hover:bg-petal focus:border-violet-cta focus:ring-4 focus:ring-blush"
+                        className="flex h-12 w-full items-center justify-between gap-3 rounded-md border border-line bg-cream px-4 text-left text-sm font-semibold text-ink outline-none transition hover:bg-petal focus:border-violet-cta focus:ring-4 focus:ring-blush"
                       >
-                        <span className="line-clamp-1">
+                        <span className="block min-w-0 flex-1 truncate">
                           {step.subcategories.length ? step.subcategories.join(", ") : "Scegli una o piu sottocategorie"}
                         </span>
-                        <span className="shrink-0 text-violet-cta">{openSubcategoryStepId === step.id ? "Chiudi" : "Apri"}</span>
+                        <span className="shrink-0 text-violet-cta">{openSubcategoryStepId === step.id ? "Fatto" : "Apri"}</span>
                       </button>
                       {openSubcategoryStepId === step.id ? (
                         <div className="z-30 mt-2 max-h-72 overflow-y-auto rounded-md border border-line bg-white p-3 shadow-soft sm:absolute sm:left-0 sm:right-0">
@@ -925,7 +925,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                               return (
                                 <label
                                   key={item}
-                                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition ${
+                                  className={`flex min-h-[64px] cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold leading-snug transition ${
                                     checked ? "border-violet-cta bg-petal text-violet-cta" : "border-line bg-cream text-ink hover:bg-petal"
                                   }`}
                                 >
@@ -933,7 +933,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                                     type="checkbox"
                                     checked={checked}
                                     onChange={() => updateStep(step.id, { subcategories: toggleValue(item, step.subcategories) })}
-                                    className="h-4 w-4 accent-[#7C3AED]"
+                                    className="h-4 w-4 shrink-0 accent-[#7C3AED]"
                                   />
                                   {item}
                                 </label>
@@ -943,25 +943,6 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                         </div>
                       ) : null}
                     </div>
-                    {step.subcategories.length ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {step.subcategories.slice(0, 4).map((item) => (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => updateStep(step.id, { subcategories: toggleValue(item, step.subcategories) })}
-                            className="rounded-md border border-violet-cta bg-violet-cta px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-violet-hover"
-                          >
-                            {item} x
-                          </button>
-                        ))}
-                        {step.subcategories.length > 4 ? (
-                          <span className="rounded-md bg-petal px-2.5 py-1.5 text-[11px] font-bold text-violet-cta">
-                            +{step.subcategories.length - 4}
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : null}
                   </div>
 
                   <label className="block">
@@ -995,7 +976,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   </label>
                 </div>
 
-                <div className="mt-5 rounded-md border border-line bg-white p-4">
+                <div className="mt-5 min-w-0 rounded-md border border-line bg-white p-4">
                   {isMusic ? (
                     <div className="grid gap-5 xl:grid-cols-3">
                       <div>
@@ -1050,7 +1031,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   </div>
                 ) : null}
 
-                <div className="mt-5 rounded-md border border-line bg-cream p-4">
+                <div className="mt-5 min-w-0 rounded-md border border-line bg-cream p-3 sm:p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-base font-bold text-ink">
@@ -1078,12 +1059,12 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   ) : isSearching ? (
                     <SearchProgress active />
                   ) : suppliers.length ? (
-                    <div className="relative mt-4">
+                    <div className="relative mt-4 min-w-0">
                       <div
                         ref={(node) => {
                           supplierResultsRefs.current[step.id] = node;
                         }}
-                        className="flex snap-x gap-3 overflow-x-auto scroll-smooth pb-3 pr-14"
+                        className="-mx-1 flex max-w-full snap-x gap-3 overflow-x-auto scroll-smooth px-1 pb-3 sm:mx-0 sm:px-0 sm:pr-14"
                       >
                         {suppliers.map((supplier, supplierIndex) => (
                           <SupplierCard
@@ -1165,7 +1146,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
           </div>
         </div>
 
-        <aside className="border-t border-line bg-white p-4 sm:p-6 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto lg:border-l lg:border-t-0 lg:p-6">
+        <aside className="min-w-0 border-t border-line bg-white p-4 sm:p-6 lg:sticky lg:top-16 lg:max-h-[calc(100vh-4rem)] lg:self-start lg:overflow-y-auto lg:border-l lg:border-t-0 lg:p-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">Resoconto budget</p>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{steps.length} categorie in lavorazione</h3>

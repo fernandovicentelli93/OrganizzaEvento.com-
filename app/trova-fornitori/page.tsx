@@ -129,7 +129,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
 
   return (
     <main className="max-w-full overflow-x-hidden bg-[#FFFDF7]">
-      <section className="mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8">
+      <section className="mx-auto max-w-7xl px-3 pb-6 pt-3 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8">
         <header className="flex items-center justify-between gap-4 py-3">
           <Link href="/" className="inline-flex items-center gap-3" aria-label="Torna alla homepage OrganizzaEvento">
             <Image src="/brand/logo.png" alt="OrganizzaEvento" width={190} height={58} priority className="h-12 w-auto object-contain" />
@@ -149,14 +149,14 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
         <div className="grid min-w-0 gap-6 py-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-end lg:py-12">
           <div className="min-w-0">
             <SectionEyebrow>Cerco fornitori</SectionEyebrow>
-            <h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-3 max-w-3xl text-2xl font-semibold leading-tight tracking-tight text-ink sm:mt-4 sm:text-5xl">
               Trova i fornitori giusti senza ricominciare da zero ogni volta.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-muted sm:text-lg">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:mt-5 sm:text-lg sm:leading-8">
               Un unico brief per cercare location, musica, planner, catering, foto, video e altri servizi. Scegli tu da
               quale fornitore partire, poi aggiungi gli altri mantenendo zona, invitati e budget.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-7 sm:flex-row">
               <a
                 href="#modulo-fornitori"
                 className="focus-ring inline-flex min-h-12 items-center justify-center rounded-md bg-violet-cta px-6 py-3 text-base font-bold text-white shadow-soft transition hover:bg-violet-hover"
@@ -173,7 +173,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
 
           </div>
 
-          <div className="hidden min-w-0 rounded-md border border-line bg-white p-4 shadow-soft sm:block sm:p-5">
+          <div className="hidden min-w-0 rounded-md border border-line bg-white p-4 shadow-soft lg:block lg:p-5">
             <div className="grid gap-3 sm:grid-cols-2">
               {quickBenefits.map((item, index) => (
                 <div key={item.title} className="rounded-md border border-line bg-cream p-4">
@@ -186,34 +186,34 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
           </div>
         </div>
 
-        <div className="mt-4 min-w-0 rounded-md border border-line bg-white p-4 shadow-sm sm:p-6">
+        <div className="mt-3 min-w-0 rounded-md border border-line bg-white p-3 shadow-sm sm:mt-4 sm:p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Fornitori prenotabili</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">Scegli chi vuoi trovare per il tuo evento.</h2>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-ink sm:mt-2 sm:text-2xl">Scegli chi vuoi trovare per il tuo evento.</h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-muted">
-              Ogni cerchio apre il modulo gia impostato sulla categoria giusta. Poi puoi aggiungere gli altri fornitori.
+              Ogni cerchio apre il modulo già impostato sulla categoria giusta. Poi puoi aggiungere gli altri fornitori.
             </p>
           </div>
-          <div className="-mx-4 mt-6 flex max-w-[100vw] gap-5 overflow-x-auto px-4 pb-3 sm:mx-0 sm:max-w-full sm:px-0">
+          <div className="-mx-3 mt-5 flex max-w-[100vw] gap-4 overflow-x-auto overscroll-x-contain px-3 pb-3 sm:mx-0 sm:mt-6 sm:max-w-full sm:gap-5 sm:px-0">
             {supplierBubbles.map((item) => {
               const isActive = selectedCategorySlug === item.slug;
               return (
                 <Link
                   key={item.slug}
                   href={`/trova-fornitori?categoria=${item.slug}#modulo-fornitori`}
-                  className="group min-w-[104px] text-center sm:min-w-[118px]"
+                  className="group min-w-[92px] text-center sm:min-w-[118px]"
                   aria-label={`Cerca fornitori: ${item.label}`}
                 >
                   <span
-                    className={`mx-auto block h-20 w-20 overflow-hidden rounded-full border bg-petal shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
+                    className={`mx-auto block h-16 w-16 overflow-hidden rounded-full border bg-petal shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-soft sm:h-24 sm:w-24 ${
                       isActive ? "border-violet-cta ring-4 ring-blush" : "border-line"
                     }`}
                   >
                     <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   </span>
-                  <span className="mt-3 block min-h-[2.4rem] text-sm font-bold leading-tight text-ink group-hover:text-violet-cta">{item.label}</span>
+                  <span className="mt-2 block min-h-[2.2rem] text-xs font-bold leading-tight text-ink group-hover:text-violet-cta sm:mt-3 sm:text-sm">{item.label}</span>
                 </Link>
               );
             })}
@@ -221,7 +221,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
         </div>
       </section>
 
-      <section className="hidden border-y border-line bg-white sm:block">
+      <section className="hidden border-y border-line bg-white lg:block">
         <div className="mx-auto grid max-w-7xl gap-3 px-4 py-5 sm:px-6 md:grid-cols-4 lg:px-8">
           {flowSteps.map((step) => (
             <article key={step.title} className="rounded-md border border-line bg-[#FFFDF7] p-4">
@@ -232,7 +232,7 @@ export default async function SupplierLandingPage({ searchParams }: SupplierLand
         </div>
       </section>
 
-      <section id="modulo-fornitori" className="mx-auto max-w-7xl scroll-mt-10 px-2 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <section id="modulo-fornitori" className="mx-auto max-w-7xl scroll-mt-8 px-1 py-6 sm:px-6 sm:py-12 lg:px-8">
         <SupplierTaxonomyRequestWizard initialCategorySlug={selectedCategorySlug} />
       </section>
 

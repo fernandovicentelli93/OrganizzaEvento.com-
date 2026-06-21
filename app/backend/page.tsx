@@ -19,6 +19,7 @@ import { formatDate } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { ensureAnalyticsSchema } from "@/lib/site-analytics";
 import { splitStoredList } from "@/lib/supplier-profile";
+import { trackedCallPrisma } from "@/lib/tracked-call-prisma";
 import type { Prisma } from "@prisma/client";
 
 export const metadata = {
@@ -63,8 +64,15 @@ const accountStatusLabels = {
   deleted: "Eliminato"
 };
 
+function callStatusTone(status?: string | null) {
+  if (status && ["answered", "in-progress", "completed"].includes(status)) return "green" as const;
+  if (status && ["busy", "failed", "no-answer", "canceled"].includes(status)) return "amber" as const;
+  return "gray" as const;
+}
+
 const backendSections = [
   { id: "fornitori", label: "Fornitori in piattaforma", helper: "Vista principale" },
+  { id: "chiamate", label: "Chiamate Twilio", helper: "Telefonate fornitori" },
   { id: "iscritti", label: "Iscritti e connessioni", helper: "Account e traffico reale" },
   { id: "account", label: "Schede account", helper: "Profili completi" },
   { id: "richieste", label: "Richieste", helper: "Fornitori e supporto" },
@@ -261,6 +269,10 @@ export default async function BackendPage({ searchParams }: PageProps) {
   const [
     supplierRequests,
     supportRequests,
+    trackedCalls,
+    todayTrackedCallCount,
+    answeredTrackedCallCount,
+    missedTrackedCallCount,
     reports,
     questions,
     answers,
@@ -298,6 +310,13 @@ export default async function BackendPage({ searchParams }: PageProps) {
       orderBy: { createdAt: "desc" },
       take: 40
     }),
+    trackedCallPrisma.trackedCall.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 80
+    }),
+    trackedCallPrisma.trackedCall.count({ where: { createdAt: { gte: startOfToday } } }),
+    trackedCallPrisma.trackedCall.count({ where: { status: { in: ["answered", "in-progress", "completed"] } } }),
+    trackedCallPrisma.trackedCall.count({ where: { status: { in: ["busy", "failed", "no-answer", "canceled"] } } }),
     prisma.report.findMany({ orderBy: { createdAt: "desc" }, take: 30 }),
     prisma.question.findMany({
       orderBy: { createdAt: "desc" },
@@ -464,6 +483,8 @@ export default async function BackendPage({ searchParams }: PageProps) {
     { label: "Supporto nuovo", value: newSupportRequestCount, helper: "Messaggi dal widget" },
     { label: "Clienti registrati", value: clientAccountCount, helper: "Account attivi" },
     { label: "Fornitori registrati", value: supplierAccountCount, helper: "Account attivi" },
+    { label: "Chiamate tracciate oggi", value: todayTrackedCallCount, helper: `${answeredTrackedCallCount} risposte totali` },
+    { label: "Chiamate non riuscite", value: missedTrackedCallCount, helper: "Busy, failed, no-answer o cancellate" },
     { label: "Domande nascoste", value: hiddenQuestionCount, helper: "Moderazione" },
     { label: "Risposte nascoste", value: hiddenAnswerCount, helper: "Moderazione" }
   ];
@@ -522,6 +543,89 @@ export default async function BackendPage({ searchParams }: PageProps) {
           Pulizia completata: {params.pulizia} record diagnostici/test rimossi.
         </div>
       ) : null}
+
+      <section className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "chiamate" ? "" : "hidden"}`}>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">Tracciamento telefonico</p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">Chiamate verso fornitori Vibes</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+              Log operativo delle chiamate gestite da Twilio. I numeri completi non vengono salvati: vedi solo ultime
+              cifre, stato, durata e fornitore collegato.
+            </p>
+          </div>
+          <TagBadge tone="violet">{trackedCalls.length} ultime chiamate</TagBadge>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Oggi</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{todayTrackedCallCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Chiamate create nelle ultime 24 ore operative.</p>
+          </article>
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Risposte</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{answeredTrackedCallCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Chiamate con stato answered, in-progress o completed.</p>
+          </article>
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Non riuscite</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{missedTrackedCallCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Busy, failed, no-answer o chiamate cancellate.</p>
+          </article>
+        </div>
+
+        <div className="mt-5 space-y-4">
+          {trackedCalls.length ? (
+            trackedCalls.map((call) => (
+              <article key={call.id} className="rounded-[1.25rem] border border-line bg-cream p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <TagBadge tone={callStatusTone(call.status)}>{call.status}</TagBadge>
+                  {call.dialStatus ? <TagBadge tone={callStatusTone(call.dialStatus)}>{call.dialStatus}</TagBadge> : null}
+                  <TagBadge>{call.direction === "click_to_call" ? "Click-to-call" : "Inoltro chiamata"}</TagBadge>
+                  <span className="text-xs text-muted">{formatDate(call.createdAt)}</span>
+                </div>
+                <div className="mt-3 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+                  <div>
+                    <h3 className="text-base font-semibold text-ink">{call.supplierName || "Fornitore non indicato"}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted">
+                      Durata: {call.durationSeconds ? `${call.durationSeconds} secondi` : "non ancora disponibile"}.
+                      {call.sourcePath ? ` Origine: ${call.sourcePath}.` : ""}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
+                      {call.customerPhoneLast4 ? <span>Cliente: ****{call.customerPhoneLast4}</span> : null}
+                      {call.supplierPhoneLast4 ? <span>Fornitore: ****{call.supplierPhoneLast4}</span> : null}
+                      {call.twilioCallSid ? <span>SID: {call.twilioCallSid.slice(0, 10)}...</span> : null}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-white p-4 text-sm leading-6 text-muted">
+                    <p className="font-semibold text-ink">Dettagli</p>
+                    <p>Avvio: {compactDateTime(call.startedAt)}</p>
+                    <p>Fine: {compactDateTime(call.endedAt)}</p>
+                    {call.supplierProfileUrl ? (
+                      <a
+                        href={call.supplierProfileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="focus-ring mt-3 inline-flex rounded-full border border-line bg-cream px-4 py-2 text-xs font-semibold text-ink transition hover:bg-petal"
+                      >
+                        Apri vetrina
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="rounded-2xl border border-line bg-cream p-4 text-sm text-muted">
+              Nessuna chiamata tracciata. Configura il numero Twilio con webhook voce
+              <code className="mx-1 rounded bg-white px-1 py-0.5">/api/twilio/voice</code>
+              e status callback
+              <code className="mx-1 rounded bg-white px-1 py-0.5">/api/twilio/status</code>.
+            </p>
+          )}
+        </div>
+      </section>
 
       <section
         className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${

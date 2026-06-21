@@ -717,3 +717,34 @@ model SupplierDashboardEvent {
   @@index([createdAt])
   @@map("supplier_dashboard_events")
 }
+
+model TrackedCall {
+  id                  String   @id @default(cuid())
+  provider            String   @default("twilio")
+  direction           String   @default("inbound_forward")
+  supplierId          String?
+  supplierName        String?
+  supplierProfileUrl  String?
+  supplierPhoneLast4  String?
+  supplierPhoneHash   String?
+  customerPhoneLast4  String?
+  customerPhoneHash   String?
+  twilioCallSid       String?  @unique
+  twilioParentCallSid String?
+  twilioDialCallSid   String?
+  status              String   @default("created")
+  dialStatus          String?
+  durationSeconds     Int?
+  sourcePath          String?
+  metadata            Json?
+  startedAt           DateTime?
+  answeredAt          DateTime?
+  endedAt             DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("tracked_calls")
+}

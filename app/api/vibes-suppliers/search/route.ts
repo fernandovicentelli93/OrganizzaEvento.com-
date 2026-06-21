@@ -17,14 +17,16 @@ import {
 } from "@/lib/vibes-geo";
 
 const VIBES_BASE_URL = "https://www.vibesplanner.com";
-const MAX_VISIBLE_RESULTS = 100;
-const MAX_COVERAGE_CANDIDATES = 140;
+const MAX_RELEVANT_RESULTS = 5000;
+const MAX_COVERAGE_CANDIDATES = MAX_RELEVANT_RESULTS;
 const MAX_NATIONWIDE_CHECKS_WITH_LOCAL_RESULTS = 18;
 const MAX_NATIONWIDE_CHECKS_WITHOUT_LOCAL_RESULTS = 30;
 const MIN_LOCAL_RESULTS_BEFORE_SKIPPING_NATIONWIDE = 15;
 const MAX_EXACT_ADDRESS_DISTANCE_CHECKS = 10;
-const MAX_SELECTED_CATEGORY_PAGES = 5;
-const MAX_FALLBACK_CATEGORY_PAGES = 3;
+const MAX_CATEGORY_PAGES = 120;
+const MAX_SELECTED_CATEGORY_PAGES = MAX_CATEGORY_PAGES;
+const MAX_FALLBACK_CATEGORY_PAGES = 60;
+const CATEGORY_FETCH_BATCH_SIZE = 8;
 const MIN_MOBILE_CATEGORY_RESULTS = 8;
 
 export const runtime = "nodejs";
@@ -748,6 +750,20 @@ async function fetchCategoryHtml(categorySlug: string, page = 1) {
   }
 }
 
+async function fetchCategoryPages(categorySlug: string, pages: number[]) {
+  const chunks: number[][] = [];
+  for (let index = 0; index < pages.length; index += CATEGORY_FETCH_BATCH_SIZE) {
+    chunks.push(pages.slice(index, index + CATEGORY_FETCH_BATCH_SIZE));
+  }
+
+  const html: string[] = [];
+  for (const chunk of chunks) {
+    const batch = await Promise.all(chunk.map((page) => fetchCategoryHtml(categorySlug, page).catch(() => "")));
+    html.push(...batch);
+  }
+  return html;
+}
+
 async function fetchCategoryResults(categorySlug: string, payload: SearchPayload, maxPages: number) {
   const category = VIBES_SUPPLIER_CATEGORIES.find((item) => item.slug === categorySlug);
   if (!category) return [];
@@ -756,7 +772,7 @@ async function fetchCategoryResults(categorySlug: string, payload: SearchPayload
 
   const pageCount = Math.min(discoverPageCount(firstPageHtml, category.slug), maxPages);
   const remainingPages = Array.from({ length: Math.max(0, pageCount - 1) }, (_, index) => index + 2);
-  const remainingHtml = await Promise.all(remainingPages.map((page) => fetchCategoryHtml(category.slug, page).catch(() => "")));
+  const remainingHtml = await fetchCategoryPages(category.slug, remainingPages);
 
   return [firstPageHtml, ...remainingHtml]
     .filter(Boolean)
@@ -848,13 +864,14 @@ async function runSupplierSearch(payload: SearchPayload) {
         return true;
       });
     const addressAwareCards = await enrichExactAddressDistances(uniqueCards, merged);
-    const candidates = rankedSuppliers(addressAwareCards, merged.province ? MAX_COVERAGE_CANDIDATES : MAX_VISIBLE_RESULTS, merged);
+    const candidates = rankedSuppliers(addressAwareCards, merged.province ? MAX_COVERAGE_CANDIDATES : MAX_RELEVANT_RESULTS, merged);
 
     let verifiedResults: VibesSupplierCard[] = [];
     if (merged.province) {
-      const directLocalMatches = candidates
+      const directLocalMatches = addressAwareCards
         .filter((card) => supplierMatchesRequestedProvince(card, merged.province))
-        .map((card) => withLocalCoverageLabel(card, merged));
+        .map((card) => withLocalCoverageLabel(card, merged))
+        .sort((a, b) => Number(b.premium) - Number(a.premium) || b.score - a.score || a.name.localeCompare(b.name, "it"));
 
       verifiedResults.push(...directLocalMatches);
 
@@ -865,12 +882,12 @@ async function runSupplierSearch(payload: SearchPayload) {
         ? MAX_NATIONWIDE_CHECKS_WITH_LOCAL_RESULTS
         : MAX_NATIONWIDE_CHECKS_WITHOUT_LOCAL_RESULTS;
 
-      if (shouldCheckNationwide && verifiedResults.length < MAX_VISIBLE_RESULTS) {
+      if (shouldCheckNationwide && verifiedResults.length < MAX_RELEVANT_RESULTS) {
         const nonLocalCandidates = candidates
           .filter((card) => !supplierMatchesRequestedProvince(card, merged.province))
           .slice(0, maxNationwideChecks);
 
-        for (let index = 0; index < nonLocalCandidates.length && verifiedResults.length < MAX_VISIBLE_RESULTS; index += 6) {
+        for (let index = 0; index < nonLocalCandidates.length && verifiedResults.length < MAX_RELEVANT_RESULTS; index += 6) {
           const batch = nonLocalCandidates.slice(index, index + 6);
           const verified = await Promise.all(batch.map((card) => verifySupplierCoverage(card, merged)));
           verifiedResults.push(...verified.filter((card): card is VibesSupplierCard => Boolean(card)));
@@ -886,8 +903,8 @@ async function runSupplierSearch(payload: SearchPayload) {
       merged,
       selectedCategory?.slug
     );
-    const liveResults = rankedSuppliers(verifiedResults, MAX_VISIBLE_RESULTS, merged);
-    const results = liveResults.length ? liveResults : rankedSuppliers(fallbackResults(merged), MAX_VISIBLE_RESULTS, merged);
+    const liveResults = rankedSuppliers(verifiedResults, MAX_RELEVANT_RESULTS, merged);
+    const results = liveResults.length ? liveResults : rankedSuppliers(fallbackResults(merged), MAX_RELEVANT_RESULTS, merged);
 
     return {
       ok: true,
@@ -924,4 +941,3 @@ export async function POST(request: Request) {
   const payload = normalizePayload((await request.json().catch(() => ({}))) as Partial<SearchPayload>);
   return noStoreJson(await runSupplierSearch(payload));
 }
-

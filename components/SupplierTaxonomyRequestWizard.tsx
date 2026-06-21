@@ -542,7 +542,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
             ...current,
             [step.id]: {
               status: "ready",
-              results: data.ok ? (data.results ?? []).slice(0, 100) : []
+              results: data.ok ? (data.results ?? []) : []
             }
           }));
         } catch {
@@ -1093,7 +1093,7 @@ export function SupplierTaxonomyRequestWizard({ initialCategorySlug = "location"
                   )}
                   {suppliers.length > 3 ? (
                     <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-xs font-semibold text-muted">Scorri le schede: ne mostriamo fino a 100 quando disponibili.</p>
+                      <p className="text-xs font-semibold text-muted">Scorri le schede: mostriamo tutti i fornitori pertinenti disponibili.</p>
                       <button
                         type="button"
                         onClick={() => scrollSupplierResults(step.id)}

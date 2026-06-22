@@ -226,7 +226,7 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
       "Email, telefoni, indirizzi, link, codici fiscali, partita IVA e nomi azienda riconoscibili vengono sostituiti prima di creare la conversazione.",
     redactedPreview: "Anteprima testo pubblicabile",
     attachmentsTitle: "File caricati",
-    analysisLabel: "Analisi intelligente",
+    analysisLabel: "Lettura del preventivo",
     emptyText:
       "Carica un file oppure inserisci il testo del preventivo. Il pulsante resta visibile ma bloccato finché non c’è materiale da confrontare con la community.",
     startLocked: "Carica un preventivo per aprire la conversazione",
@@ -235,13 +235,13 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     loadingTitle: "Stiamo mettendo ordine nel preventivo",
     loadingText: "Un attimo: leggiamo le voci, togliamo i dati sensibili e prepariamo una domanda chiara da portare alla community.",
     loadingSteps: ["Ripuliamo i dati privati", "Mettiamo in fila inclusi ed extra", "Scriviamo una domanda utile e naturale"],
-    errorTitle: "Analisi AI non completata",
-    errorText: "In questo momento non riusciamo a completare l'analisi AI. Riprova tra qualche secondo.",
+    errorTitle: "Analisi non completata",
+    errorText: "In questo momento non riusciamo a completare la lettura del preventivo. Riprova tra qualche secondo.",
     retry: "Riprova analisi",
     included: "Cosa sembra incluso",
     extras: "Extra da tenere d'occhio",
     unclear: "Punti poco chiari",
-    questions: "Domande intelligenti da fare",
+    questions: "Domande utili da fare",
     comparison: "Lettura del preventivo",
     offerSummary: "Riepilogo dell'offerta",
     detailedReading: "Lettura ragionata",
@@ -297,7 +297,7 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     redactionText: "Emails, phone numbers, addresses, links, tax codes, VAT numbers and recognizable company names are replaced before posting.",
     redactedPreview: "Safe public preview",
     attachmentsTitle: "Uploaded files",
-    analysisLabel: "Smart analysis",
+    analysisLabel: "Quote reading",
     emptyText: "Upload a file or paste the quote text. The conversation button stays visible but locked until there is material to compare with the Italian community.",
     startLocked: "Upload a quote to compare it with Italy",
     startReady: "Start conversation",
@@ -305,13 +305,13 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     loadingTitle: "We are making sense of your quote",
     loadingText: "One moment: we read the items, remove private details and prepare a clear community question.",
     loadingSteps: ["Cleaning private details", "Sorting included items and extras", "Writing a natural question"],
-    errorTitle: "AI analysis not completed",
-    errorText: "We cannot complete the AI analysis right now. Please try again in a few seconds.",
+    errorTitle: "Quote reading not completed",
+    errorText: "We cannot complete the quote reading right now. Please try again in a few seconds.",
     retry: "Retry analysis",
     included: "What seems included",
     extras: "Extras to watch",
     unclear: "Unclear points",
-    questions: "Smart questions for Italian suppliers",
+    questions: "Useful questions for Italian suppliers",
     comparison: "Quote reading",
     offerSummary: "Offer summary",
     detailedReading: "Reasoned reading",
@@ -361,7 +361,7 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     redactionText: "Emails, teléfonos, direcciones, enlaces, códigos fiscales, IVA y nombres de empresa reconocibles se sustituyen antes de publicar.",
     redactedPreview: "Vista previa publicable",
     attachmentsTitle: "Archivos cargados",
-    analysisLabel: "Análisis inteligente",
+    analysisLabel: "Lectura del presupuesto",
     emptyText: "Sube un archivo o pega el texto del presupuesto. El botón queda visible pero bloqueado hasta tener material para comparar con la comunidad italiana.",
     startLocked: "Sube un presupuesto para compararlo con Italia",
     startReady: "Iniciar conversación",
@@ -369,13 +369,13 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     loadingTitle: "Estamos ordenando tu presupuesto",
     loadingText: "Un momento: leemos las partidas, quitamos datos privados y preparamos una pregunta clara para la comunidad.",
     loadingSteps: ["Limpiamos datos privados", "Ordenamos incluidos y extras", "Escribimos una pregunta natural"],
-    errorTitle: "Análisis AI no completado",
-    errorText: "Ahora no podemos completar el análisis AI. Inténtalo otra vez en unos segundos.",
+    errorTitle: "Lectura no completada",
+    errorText: "Ahora no podemos completar la lectura del presupuesto. Inténtalo otra vez en unos segundos.",
     retry: "Reintentar análisis",
     included: "Lo que parece incluido",
     extras: "Extras a vigilar",
     unclear: "Puntos poco claros",
-    questions: "Preguntas inteligentes para proveedores italianos",
+    questions: "Preguntas útiles para proveedores italianos",
     comparison: "Lectura del presupuesto",
     offerSummary: "Resumen de la oferta",
     detailedReading: "Lectura razonada",
@@ -425,7 +425,7 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     redactionText: "Emails, téléphones, adresses, liens, codes fiscaux, TVA et noms d'entreprise reconnaissables sont remplacés avant publication.",
     redactedPreview: "Aperçu publiable",
     attachmentsTitle: "Fichiers ajoutés",
-    analysisLabel: "Analyse intelligente",
+    analysisLabel: "Lecture du devis",
     emptyText: "Ajoutez un fichier ou collez le texte du devis. Le bouton reste visible mais bloqué tant qu'il n'y a rien à comparer avec la communauté italienne.",
     startLocked: "Ajoutez un devis pour le comparer en Italie",
     startReady: "Ouvrir la discussion",
@@ -433,13 +433,13 @@ const copies: Record<QuoteAnalyzerLocale, AnalyzerCopy> = {
     loadingTitle: "Nous remettons votre devis en ordre",
     loadingText: "Un instant : nous lisons les postes, retirons les données privées et préparons une question claire pour la communauté.",
     loadingSteps: ["Nettoyage des données privées", "Classement des inclus et extras", "Rédaction d'une question naturelle"],
-    errorTitle: "Analyse AI non terminée",
-    errorText: "Nous ne pouvons pas terminer l'analyse AI pour le moment. Réessayez dans quelques secondes.",
+    errorTitle: "Lecture non terminée",
+    errorText: "Nous ne pouvons pas terminer la lecture du devis pour le moment. Réessayez dans quelques secondes.",
     retry: "Relancer l'analyse",
     included: "Ce qui semble inclus",
     extras: "Extras à surveiller",
     unclear: "Points flous",
-    questions: "Questions intelligentes pour prestataires italiens",
+    questions: "Questions utiles pour prestataires italiens",
     comparison: "Lecture du devis",
     offerSummary: "Résumé de l'offre",
     detailedReading: "Lecture raisonnée",
@@ -2506,70 +2506,87 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
           <AiAnalysisErrorCard copy={copy} onRetry={() => void improveWithAI()} />
         ) : hasAiReport ? (
           <div className="mt-5 space-y-5">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-            <div className="rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-ink">
+            <div ref={resultFocusRef} className="grid scroll-mt-28 gap-4 xl:grid-cols-[minmax(280px,0.78fr)_minmax(0,1.22fr)]">
+              <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
+                <h2 className="mt-2 text-xl font-semibold leading-tight text-ink">{result.topic.title[locale]}</h2>
+                <p className="mt-3 text-muted">{result.reading}</p>
+                <div className="mt-4 rounded-md border border-line bg-white p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                     {locale === "it"
-                      ? "Abbiamo letto il tuo preventivo"
+                      ? "Materiale letto"
                       : locale === "en"
-                        ? "We read your Italian quote"
+                        ? "Material read"
                         : locale === "es"
-                          ? "Hemos leído tu presupuesto italiano"
-                          : "Nous avons lu votre devis italien"}
-                  </h2>
-                  <p className="mt-2 text-muted">{displayReport.user_summary}</p>
+                          ? "Material revisado"
+                          : "Éléments lus"}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-ink">
+                    {[files.length ? `${files.length} file` : null, city || province || region || null].filter(Boolean).join(" - ") ||
+                      (locale === "it" ? "Testo del preventivo" : locale === "en" ? "Quote text" : locale === "es" ? "Texto del presupuesto" : "Texte du devis")}
+                  </p>
                 </div>
-                <span className="inline-flex w-fit shrink-0 rounded-md bg-white px-3 py-2 text-xs font-semibold text-violet-cta shadow-sm">
-                  {detectedServiceLabel}
-                </span>
+              </div>
+              {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.62fr)]">
+              <div className="rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="text-base font-semibold text-ink">
+                      {locale === "it"
+                        ? "Abbiamo letto il tuo preventivo"
+                        : locale === "en"
+                          ? "We read your Italian quote"
+                          : locale === "es"
+                            ? "Hemos leído tu presupuesto italiano"
+                            : "Nous avons lu votre devis italien"}
+                    </h2>
+                    <p className="mt-2 text-muted">{displayReport.user_summary}</p>
+                  </div>
+                  <span className="inline-flex w-fit shrink-0 rounded-md bg-white px-3 py-2 text-xs font-semibold text-violet-cta shadow-sm">
+                    {detectedServiceLabel}
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-md border border-violet-cta/25 bg-white p-4 shadow-sm">
+                <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
+                <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                  <button
+                    type="button"
+                    onClick={openDiscussion}
+                    className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
+                  >
+                    {formCopy.publishPrivate}
+                  </button>
+                  <VibesSupplierCta variant="light" className="min-h-12 w-full justify-center shadow-none">
+                    {formCopy.compareSuppliers}
+                  </VibesSupplierCta>
+                </div>
               </div>
             </div>
-            <div className="rounded-md border border-violet-cta/25 bg-white p-4 shadow-sm">
-              <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
-              <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                <button
-                  type="button"
-                  onClick={openDiscussion}
-                  className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
-                >
-                  {formCopy.publishPrivate}
-                </button>
-                <VibesSupplierCta variant="light" className="min-h-12 w-full justify-center shadow-none">
-                  {formCopy.compareSuppliers}
-                </VibesSupplierCta>
-              </div>
-            </div>
-            </div>
-            <div ref={resultFocusRef} className="scroll-mt-24">
-              <QuoteSupplierStrip
-                active={hasAiReport}
-                locale={locale}
-                serviceType={displayReport.detected_service}
-                topicKey={result.topic.key}
-                topicLabel={result.topic.label[locale]}
-                serviceLabel={detectedServiceLabel}
-                quoteText={redactedText}
-                city={city}
-                province={province}
-                region={region}
-                eventLabel={formCopy.eventOptions[eventType]}
-              />
-            </div>
+
+            <QuoteSupplierStrip
+              active={hasAiReport}
+              locale={locale}
+              serviceType={displayReport.detected_service}
+              topicKey={result.topic.key}
+              topicLabel={result.topic.label[locale]}
+              serviceLabel={detectedServiceLabel}
+              quoteText={redactedText}
+              city={city}
+              province={province}
+              region={region}
+              eventLabel={formCopy.eventOptions[eventType]}
+            />
+
             {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
+
             <section className="rounded-md border border-line bg-white p-4 shadow-sm">
               <div className="border-b border-line pb-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">
-                  {locale === "it"
-                    ? "Analisi dettagliata"
-                    : locale === "en"
-                      ? "Detailed analysis"
-                      : locale === "es"
-                        ? "Análisis detallado"
-                        : "Analyse détaillée"}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.comparison}</p>
                 <h2 className="mt-2 text-xl font-semibold text-ink">
                   {locale === "it"
                     ? "Cosa controllare prima di accettare"
@@ -2581,14 +2598,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                 </h2>
               </div>
               <div className="mt-4 space-y-4">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-                  <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
-                    <h2 className="mt-2 text-lg font-semibold text-ink">{result.topic.title[locale]}</h2>
-                    <p className="mt-2 text-muted">{result.reading}</p>
-                  </div>
-                  {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
-                </div>
                 <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
                 <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                   <Block title={copy.included} items={displayReport.included_items} />

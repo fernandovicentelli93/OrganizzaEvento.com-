@@ -195,6 +195,7 @@ export function SupplierRequestWizard() {
   const briefComplete = Boolean(brief.eventType && brief.region && brief.province && brief.guestsCount && brief.totalBudget && brief.eventPeriod);
   const suppliersComplete = suppliers.every((supplier) => supplier.subcategories.length && supplier.budgetRange && supplier.duration && noteIsValid(supplier.notes));
   const estimatedBudget = suppliers.reduce((total, supplier) => total + (parseBudgetAmount(supplier.budgetRange) ?? 0), 0);
+  const contactReady = Boolean(firstName.trim() && email.includes("@") && phone.replace(/\D/g, "").length >= 8 && contactPreference);
 
   function updateBrief(update: Partial<EventBrief>) {
     setBrief((current) => ({ ...current, ...update }));
@@ -616,24 +617,61 @@ export function SupplierRequestWizard() {
               </div>
 
               <div className="mt-5 rounded-md border border-line bg-petal p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-sm font-bold text-ink">Conferma OTP</p>
-                    <p className="mt-1 text-xs leading-5 text-muted">Demo locale: dopo il click usa il codice 123456. In produzione si colleghera al servizio SMS.</p>
-                  </div>
-                  <button type="button" onClick={sendOtp} className="focus-ring rounded-md bg-ink px-4 py-3 text-sm font-bold text-white">
-                    Invia codice OTP
-                  </button>
+                <div>
+                  <p className="text-sm font-bold text-ink">Verifica telefono</p>
+                  <p className="mt-1 text-xs leading-5 text-muted">Prima invia il codice OTP, poi inseriscilo nel campo di verifica. Demo locale: dopo il click usa il codice 123456.</p>
                 </div>
-                {otpSent ? (
-                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                    <input value={otpCode} onChange={(event) => setOtpCode(event.target.value)} className="focus-ring min-h-12 flex-1 rounded-md border border-line bg-white px-4 text-sm text-ink" placeholder="Inserisci codice" inputMode="numeric" />
-                    <button type="button" onClick={verifyOtp} className="focus-ring rounded-md bg-violet-cta px-5 py-3 text-sm font-bold text-white">
-                      Verifica
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                  <div className={`rounded-md border p-4 ${contactReady ? "border-line bg-white" : "border-amber-200 bg-amber-50"}`}>
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ink text-sm font-bold text-white">1</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-ink">Invia il codice</p>
+                        <p className="mt-1 text-xs leading-5 text-muted">{contactReady ? "I dati di contatto sono pronti. Ora puoi inviare il codice." : "Completa nome, email, telefono e fascia oraria per attivare l'invio."}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={sendOtp}
+                      disabled={!contactReady}
+                      className="focus-ring mt-4 min-h-11 w-full rounded-md bg-ink px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      {otpSent ? "Reinvia codice OTP" : "Invia codice OTP"}
                     </button>
                   </div>
-                ) : null}
-                {otpVerified ? <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">Contatto verificato.</p> : null}
+
+                  <div className={`rounded-md border p-4 ${otpSent ? "border-line bg-white" : "border-line bg-white/70 opacity-70"}`}>
+                    <div className="flex items-start gap-3">
+                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm font-bold ${otpSent ? "bg-violet-cta text-white" : "bg-white text-muted ring-1 ring-line"}`}>2</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-ink">Inserisci e verifica</p>
+                        <p className="mt-1 text-xs leading-5 text-muted">{otpSent ? "Scrivi il codice ricevuto e conferma il contatto." : "Questo passaggio si sblocca dopo l'invio del codice."}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+                      <input
+                        value={otpCode}
+                        onChange={(event) => setOtpCode(event.target.value)}
+                        disabled={!otpSent || otpVerified}
+                        className="focus-ring min-h-11 flex-1 rounded-md border border-line bg-white px-4 text-sm text-ink disabled:cursor-not-allowed disabled:bg-cream disabled:text-muted"
+                        placeholder="Codice OTP"
+                        inputMode="numeric"
+                      />
+                      <button
+                        type="button"
+                        onClick={verifyOtp}
+                        disabled={!otpSent || otpVerified || !otpCode.trim()}
+                        className="focus-ring min-h-11 rounded-md bg-violet-cta px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        Verifica
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {otpSent && !otpVerified ? <p className="mt-3 rounded-md bg-white px-3 py-2 text-xs font-semibold leading-5 text-muted">Codice inviato. Adesso inseriscilo nello step 2 e premi Verifica.</p> : null}
+                {otpVerified ? <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">Contatto verificato. Ora puoi inviare la richiesta.</p> : null}
               </div>
 
               <label className="mt-5 flex gap-3 rounded-md border border-line bg-cream p-4 text-sm leading-6 text-muted">

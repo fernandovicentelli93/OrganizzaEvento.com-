@@ -452,10 +452,10 @@ export function SupplierRequestWizard() {
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-sm font-bold text-ink">Sottocategorie *</p>
-                          <p className="mt-1 text-xs leading-5 text-muted">Usa il + per aprire la lista e selezionare una o più opzioni.</p>
+                          <p className="mt-1 text-xs leading-5 text-muted">Apri la lista e spunta le voci: vengono salvate subito.</p>
                         </div>
                         <button type="button" onClick={() => updateSupplier(supplier.id, { showSubcategoryMenu: !supplier.showSubcategoryMenu })} className="focus-ring flex min-h-10 items-center justify-center rounded-md bg-violet-cta px-4 text-sm font-bold leading-none text-white">
-                          {supplier.showSubcategoryMenu ? "Fatto" : "+"}
+                          {supplier.showSubcategoryMenu ? "Nascondi lista" : "+ Scegli"}
                         </button>
                       </div>
                       {supplier.subcategories.length ? (

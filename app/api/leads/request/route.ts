@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyOtpVerificationToken } from "@/lib/twilio-verify";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +34,7 @@ type LeadRequestInput = {
   utmSource?: string;
   utmCampaign?: string;
   otpVerified?: boolean;
+  otpVerificationToken?: string;
   privacyAccepted?: boolean;
   categories?: LeadCategoryInput[];
 };
@@ -112,7 +114,7 @@ async function nextRequestCode(region: string, eventType: string) {
   return `OE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
 
-function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, request: Request) {
+function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, request: Request, otpVerified: boolean) {
   const phone = clean(input.phone);
   const eventDate = parseDate(input.eventDate);
   const privacyAcceptedAt = input.privacyAccepted ? new Date() : null;
@@ -120,8 +122,8 @@ function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, requ
   expiresAt.setDate(expiresAt.getDate() + 7);
 
   return {
-    status: input.otpVerified ? "otp_verified" : "otp_pending",
-    otpStatus: input.otpVerified ? "verified" : "pending",
+    status: otpVerified ? "otp_verified" : "otp_pending",
+    otpStatus: otpVerified ? "verified" : "pending",
     firstName: clean(input.firstName),
     lastName: optionalClean(input.lastName),
     email: cleanEmail(input.email),
@@ -144,7 +146,7 @@ function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, requ
     eventType: clean(input.eventType),
     eventDate,
     expiresAt,
-    otpVerifiedAt: input.otpVerified ? new Date() : null,
+    otpVerifiedAt: otpVerified ? new Date() : null,
     privacyAcceptedAt,
     ipHash: hashValue(request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null),
     userAgentHash: hashValue(request.headers.get("user-agent"))
@@ -163,7 +165,10 @@ export async function POST(request: Request) {
 
     const parentCategory = categories[0];
     const requestCode = await nextRequestCode(clean(input.region), clean(input.eventType));
-    const parentData = baseLeadData(input, parentCategory, request);
+    const otpVerified =
+      verifyOtpVerificationToken(input.phone, input.otpVerificationToken) ||
+      (process.env.NODE_ENV !== "production" && input.otpVerified === true);
+    const parentData = baseLeadData(input, parentCategory, request, otpVerified);
 
     const created = await prisma.$transaction(async (tx) => {
       const leadRequest = leadRequestDelegate(tx);
@@ -180,7 +185,7 @@ export async function POST(request: Request) {
         children.push(
           await leadRequest.create({
             data: {
-              ...baseLeadData(input, category, request),
+              ...baseLeadData(input, category, request, otpVerified),
               requestCode: `${requestCode}-${index + 2}`,
               parentId: parent.id,
               childIndex: index + 2

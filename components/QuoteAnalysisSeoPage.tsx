@@ -531,23 +531,23 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(47,36,48,0.88),rgba(47,36,48,0.62),rgba(47,36,48,0.22))]" />
-        <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 text-white sm:py-14 xl:grid-cols-[0.98fr_0.72fr] xl:items-center">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(47,36,48,0.9),rgba(47,36,48,0.62),rgba(47,36,48,0.24))]" />
+        <div className="relative mx-auto grid min-h-[34rem] max-w-[1250px] gap-8 px-4 py-12 text-white sm:min-h-[36rem] sm:py-16 lg:px-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(390px,0.72fr)] xl:items-center">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-rose-100">{c.eyebrow} - {pageTypeLabel(page, locale)}</p>
-            <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl xl:text-6xl">{page.h1}</h1>
+            <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.06] tracking-tight sm:text-5xl xl:text-6xl">{page.h1}</h1>
             <p className="mt-5 max-w-2xl text-base leading-8 text-rose-50 sm:text-lg">{c.subtitle(serviceLabel, place)}</p>
-            <p className="mt-4 inline-flex rounded-lg border border-white/35 bg-white/15 px-4 py-2 text-sm font-semibold text-white">{c.noLogin}</p>
+            <p className="mt-4 inline-flex max-w-2xl rounded-md border border-white/35 bg-white/15 px-4 py-2 text-sm font-semibold leading-6 text-white shadow-sm backdrop-blur">{c.noLogin}</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <a href="#analizzatore" className="focus-ring inline-flex min-h-12 items-center justify-center rounded-md bg-violet-cta px-6 py-3 text-base font-semibold text-white shadow-soft transition hover:bg-violet-hover">
+              <a href="#analizzatore" className="focus-ring inline-flex min-h-12 items-center justify-center rounded-md bg-violet-cta px-6 py-3 text-base font-semibold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-violet-hover">
                 {c.primaryCta}
               </a>
-              <VibesSupplierCta variant="dark" className="min-h-12 rounded-md px-6 text-base shadow-none" logoClassName="h-7 w-7">
+              <VibesSupplierCta variant="dark" className="min-h-12 rounded-md px-6 text-base shadow-none transition hover:-translate-y-0.5" logoClassName="h-7 w-7">
                 {c.secondaryCta}
               </VibesSupplierCta>
             </div>
           </div>
-          <aside className="w-full min-w-0 rounded-md border border-white/35 bg-white/95 p-5 text-ink shadow-soft backdrop-blur xl:max-w-none">
+          <aside className="w-full min-w-0 rounded-md border border-white/35 bg-white/95 p-5 text-ink shadow-soft backdrop-blur sm:p-6 xl:max-w-none">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">
               {locale === "it"
                 ? "Come funziona"
@@ -557,7 +557,7 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
                     ? "Cómo funciona"
                     : "Comment ça marche"}
             </p>
-            <h2 className="mt-3 text-2xl font-semibold leading-tight text-ink">
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-ink sm:text-[1.65rem]">
               {locale === "it"
                 ? "Prima carichi il preventivo, poi apri il confronto."
                 : locale === "en"
@@ -578,8 +578,8 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
         </div>
       </section>
 
-      <section id="analizzatore" className="border-b border-line bg-white py-8">
-        <div className="mx-auto max-w-7xl px-4">
+      <section id="analizzatore" className="border-b border-line bg-[#fff8f3] py-8 sm:py-10">
+        <div className="mx-auto max-w-[1250px] px-4 lg:px-6">
           <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">
@@ -612,60 +612,90 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
         </div>
       </section>
 
-      {details ? (
-        <section className="mx-auto grid max-w-6xl gap-4 px-4 py-8 md:grid-cols-2 lg:grid-cols-4">
-          <BulletPanel title={c.includedTitle} items={details.required} />
-          <BulletPanel title={c.missingTitle} items={details.missing} />
-          <BulletPanel title={c.hiddenTitle} items={details.hidden} />
-          <BulletPanel title={c.questionsTitle} items={details.questions} accent />
-        </section>
-      ) : (
-        <section className="mx-auto grid max-w-6xl gap-4 px-4 py-8 md:grid-cols-3">
-          {servicePages.map((item) => (
-            <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-md border border-line bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-soft">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{c.serviceLabel}</p>
-              <h2 className="mt-2 text-xl font-semibold leading-tight text-ink">{item.h1}</h2>
-              <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted">{item.metaDescription}</p>
-            </Link>
-          ))}
-        </section>
-      )}
+      <section className="bg-cream py-10">
+        <div className="mx-auto grid max-w-[1250px] gap-5 px-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.55fr)] lg:px-6">
+          <article className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">{c.guideTitle(serviceLabel)}</p>
+            <h2 className="mt-3 max-w-3xl text-2xl font-semibold leading-tight text-ink">
+              {c.benchmarkTitle}
+            </h2>
+            <p className="mt-3 max-w-4xl text-sm leading-7 text-muted">
+              {page.municipality || page.regionName ? localContextText(page, locale) : c.benchmarkFallback}
+            </p>
+            {details ? (
+              <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <BulletPanel title={c.includedTitle} items={details.required.slice(0, 4)} />
+                <BulletPanel title={c.missingTitle} items={details.missing.slice(0, 4)} />
+                <BulletPanel title={c.hiddenTitle} items={details.hidden.slice(0, 4)} />
+                <BulletPanel title={c.questionsTitle} items={details.questions.slice(0, 4)} accent />
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                {servicePages.slice(0, 6).map((item) => (
+                  <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-md border border-line bg-cream p-4 transition hover:-translate-y-0.5 hover:bg-petal">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-cta">{c.serviceLabel}</p>
+                    <h3 className="mt-2 text-base font-semibold leading-snug text-ink">{item.h1}</h3>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </article>
 
-      {details ? (
-        <section className="mx-auto max-w-6xl px-4 pb-8">
-          <div className="rounded-md border border-line bg-white p-5 shadow-sm">
-            <h2 className="text-2xl font-semibold text-ink">{c.faqTitle}</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {details.faq.map(([question, answer]) => (
-                <article key={question} className="rounded-md bg-cream p-4">
-                  <h3 className="text-base font-semibold text-ink">{question}</h3>
-                  <p className="mt-2 text-sm leading-7 text-muted">{answer}</p>
-                </article>
+          <aside className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">{c.localTitle}</p>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight text-ink">{c.finalCtaTitle}</h2>
+            <div className="mt-4 grid gap-3">
+              {communityActionPoints(locale).map((item) => (
+                <p key={item} className="rounded-md bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink">
+                  {item}
+                </p>
               ))}
             </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="mx-auto max-w-6xl px-4 pb-10">
-        <article className="rounded-md border border-line bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-ink">{c.internalLinksTitle}</h2>
-              <p className="mt-1 text-sm leading-6 text-muted">{c.finalCtaText}</p>
-            </div>
-            <a href="#analizzatore" className="focus-ring inline-flex min-h-11 items-center justify-center rounded-md bg-violet-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-hover">
+            <a href="#analizzatore" className="focus-ring mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-violet-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-hover">
               {c.primaryCta}
             </a>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {links.map((item) => (
-              <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-md border border-line bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink transition hover:bg-petal">
-                {item.h1}
-              </Link>
-            ))}
-          </div>
-        </article>
+          </aside>
+        </div>
+
+        <div className="mx-auto mt-5 grid max-w-[1250px] gap-5 px-4 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)] lg:px-6">
+          {details ? (
+            <section className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-2xl font-semibold text-ink">{c.faqTitle}</h2>
+              <div className="mt-4 grid gap-3">
+                {details.faq.map(([question, answer]) => (
+                  <article key={question} className="rounded-md bg-cream p-4">
+                    <h3 className="text-base font-semibold text-ink">{question}</h3>
+                    <p className="mt-2 text-sm leading-7 text-muted">{answer}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <section className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-2xl font-semibold text-ink">{c.faqTitle}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted">{c.benchmarkMeta}</p>
+            </section>
+          )}
+
+          <section className="rounded-md border border-line bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-cta">{c.internalLinksTitle}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-ink">{c.finalCtaText}</h2>
+              </div>
+              <VibesSupplierCta variant="light" className="min-h-11 rounded-md shadow-none" logoClassName="h-6 w-6">
+                {c.findAlternatives}
+              </VibesSupplierCta>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {links.slice(0, 8).map((item) => (
+                <Link key={item.url} href={relativeHref(item.url)} className="focus-ring rounded-md border border-line bg-cream px-4 py-3 text-sm font-semibold leading-6 text-ink transition hover:bg-petal">
+                  {item.h1}
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
       </section>
     </main>
   );

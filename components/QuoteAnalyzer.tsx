@@ -2315,20 +2315,18 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={[
-        "block h-full cursor-pointer rounded-md border border-dashed px-4 py-4 text-sm font-semibold text-ink transition",
-        isDraggingFile ? "border-violet-cta bg-white shadow-soft ring-2 ring-violet-cta/20" : "border-violet-cta/45 bg-petal hover:border-violet-cta hover:bg-white"
+        "block h-full cursor-pointer rounded-md border border-dashed px-4 py-4 text-center text-sm font-semibold text-ink transition",
+        isDraggingFile ? "border-violet-cta bg-white shadow-soft ring-2 ring-violet-cta/20" : "border-violet-cta/45 bg-[#fffdf8] hover:border-violet-cta hover:bg-white"
       ].join(" ")}
     >
-      <span className="block text-base font-semibold text-ink">{copy.uploadLabel}</span>
-      <span className="mt-3 block rounded-md border border-line/70 bg-white/70 px-3 py-3">
+      <span className="block min-h-[7.5rem] rounded-md border border-line/70 bg-white/60 px-3 py-5">
         <span className="block text-sm font-semibold text-ink">{isDraggingFile ? copy.dropActive : copy.dropTitle}</span>
         <span className="mt-1 block text-xs font-normal leading-5 text-muted">{copy.dropHint}</span>
+        <span className="mt-3 inline-flex rounded-md bg-white px-4 py-2 text-xs font-semibold text-ink shadow-sm">
+          {copy.fileButton}
+        </span>
       </span>
       <span className="mt-3 block text-xs font-normal leading-5 text-muted">{copy.uploadHelp}</span>
-      <span className="mt-2 block text-xs font-normal leading-5 text-muted">{formCopy.privacyNote}</span>
-      <span className="mt-4 inline-flex rounded-md bg-white px-3 py-2 text-xs font-semibold text-ink shadow-sm">
-        {copy.fileButton}
-      </span>
       <input
         className="sr-only"
         type="file"
@@ -2344,25 +2342,43 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
       {showAnalysisLoading ? <AiAnalysisLoadingOverlay copy={copy} tip={loadingTip} /> : null}
       <div className="grid min-w-0 max-w-full gap-6 overflow-hidden">
       {shouldShowInputPanel ? (
-      <section className="min-w-0 max-w-full rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
-        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)] xl:items-stretch">
-          {uploadControl}
+      <section className="min-w-0 max-w-full rounded-md border border-line bg-white p-3 shadow-sm sm:p-4">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-2 lg:items-stretch">
+          <div className="rounded-md border border-line bg-white p-4">
+            <p className="text-base font-semibold text-ink">1. {copy.uploadLabel}</p>
+            <div className="mt-3">{uploadControl}</div>
+            <p className="mt-3 text-xs leading-5 text-muted">
+              {locale === "it"
+                ? "Dopo il caricamento questa sezione si richiude: resta solo un riepilogo compatto del file usato."
+                : locale === "en"
+                  ? "After upload this section closes: only a compact summary of the file remains."
+                  : locale === "es"
+                    ? "Después de subirlo, esta sección se cierra: queda solo un resumen compacto del archivo."
+                    : "Après l'ajout, cette section se ferme: seul un résumé compact du fichier reste visible."}
+            </p>
+          </div>
 
-          <label className="block min-w-0">
-            <span className="block text-sm font-semibold text-ink">{copy.inputLabel}</span>
+          <label className="block min-w-0 rounded-md border border-line bg-white p-4">
+            <span className="block text-base font-semibold text-ink">
+              2. {locale === "it" ? "Controlla il testo letto" : locale === "en" ? "Check the extracted text" : locale === "es" ? "Revisa el texto leído" : "Vérifiez le texte lu"}
+            </span>
             <textarea
               value={rawText}
               onChange={(event) => handleRawTextChange(event.target.value)}
               rows={8}
               placeholder={copy.placeholder}
-              className="focus-ring mt-3 min-h-[18rem] w-full rounded-md border border-line bg-cream px-4 py-3 text-sm leading-7 text-ink xl:h-[calc(100%-2rem)]"
+              className="focus-ring mt-3 min-h-[10.5rem] w-full rounded-md border border-line bg-cream px-4 py-3 text-sm leading-7 text-ink"
             />
+            <p className="mt-3 rounded-md bg-petal px-3 py-2 text-xs font-semibold leading-5 text-ink">
+              <span className="mr-2 inline-flex rounded bg-violet-cta px-2 py-1 text-[10px] uppercase tracking-[0.08em] text-white">Privacy</span>
+              {formCopy.privacyNote}
+            </p>
           </label>
         </div>
 
-        <div className="mt-4 rounded-lg border border-line bg-cream p-4">
+        <div className="mt-4 rounded-md border border-line bg-white p-4">
           <p className="text-sm font-semibold text-ink">{formCopy.contextTitle}</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
             <SelectField label={formCopy.service} value={serviceType} onChange={handleServiceTypeChange}>
               {(Object.keys(formCopy.serviceOptions) as QuoteServiceType[]).map((key) => (
                 <option key={key} value={key}>
@@ -2379,39 +2395,46 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
             </SelectField>
             <TextField label={formCopy.city} value={city} onChange={setCity} placeholder="Milano" />
             <TextField label={formCopy.province} value={province} onChange={setProvince} placeholder="MI" />
-            <TextField label={formCopy.region} value={region} onChange={setRegion} placeholder="Lombardia" />
-            <TextField label={formCopy.eventDate} value={eventDate} onChange={setEventDate} type="date" />
             <TextField label={formCopy.guests} value={guestsCount} onChange={setGuestsCount} type="number" placeholder="90" />
-            <TextField label={formCopy.duration} value={durationEstimate} onChange={setDurationEstimate} placeholder="6 ore" />
             <TextField label={formCopy.total} value={totalAmount} onChange={setTotalAmount} placeholder="1.200 euro" />
-            <SelectField label={formCopy.objective} value={objective} onChange={(value) => setObjective(value as QuoteObjective)}>
-              {(Object.keys(formCopy.objectiveOptions) as QuoteObjective[]).map((key) => (
-                <option key={key} value={key}>
-                  {formCopy.objectiveOptions[key]}
-                </option>
-              ))}
-            </SelectField>
           </div>
-          <fieldset className="mt-4">
-            <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{formCopy.serviceDetails}</legend>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {serviceSpecificOptions[serviceType].map((item) => (
-                <label
-                  key={item.value}
-                  className={[
-                    "cursor-pointer rounded-md border px-3 py-2 text-xs font-semibold transition",
-                    selectedSpecifics.includes(item.value) ? "border-violet-cta bg-violet-cta text-white" : "border-line bg-white text-muted hover:border-violet-cta/60 hover:text-ink"
-                  ].join(" ")}
-                >
-                  <input className="sr-only" type="checkbox" checked={selectedSpecifics.includes(item.value)} onChange={() => toggleSpecific(item.value)} />
-                  {item.label[locale]}
-                </label>
-              ))}
+          <details className="mt-3 rounded-md border border-line bg-cream px-3 py-2">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+              {locale === "it" ? "Altri dettagli" : locale === "en" ? "More details" : locale === "es" ? "Más detalles" : "Plus de détails"}
+            </summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <TextField label={formCopy.region} value={region} onChange={setRegion} placeholder="Lombardia" />
+              <TextField label={formCopy.eventDate} value={eventDate} onChange={setEventDate} type="date" />
+              <TextField label={formCopy.duration} value={durationEstimate} onChange={setDurationEstimate} placeholder="6 ore" />
+              <SelectField label={formCopy.objective} value={objective} onChange={(value) => setObjective(value as QuoteObjective)}>
+                {(Object.keys(formCopy.objectiveOptions) as QuoteObjective[]).map((key) => (
+                  <option key={key} value={key}>
+                    {formCopy.objectiveOptions[key]}
+                  </option>
+                ))}
+              </SelectField>
             </div>
-          </fieldset>
+            <fieldset className="mt-4">
+              <legend className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{formCopy.serviceDetails}</legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {serviceSpecificOptions[serviceType].map((item) => (
+                  <label
+                    key={item.value}
+                    className={[
+                      "cursor-pointer rounded-md border px-3 py-2 text-xs font-semibold transition",
+                      selectedSpecifics.includes(item.value) ? "border-violet-cta bg-violet-cta text-white" : "border-line bg-white text-muted hover:border-violet-cta/60 hover:text-ink"
+                    ].join(" ")}
+                  >
+                    <input className="sr-only" type="checkbox" checked={selectedSpecifics.includes(item.value)} onChange={() => toggleSpecific(item.value)} />
+                    {item.label[locale]}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </details>
         </div>
 
-        <div className="mt-4 rounded-lg border border-line bg-cream p-4">
+        <div className="mt-4 rounded-md border border-line bg-cream p-4">
           <p className="text-sm font-semibold text-ink">{copy.redactionTitle}</p>
           <p className="mt-2 text-xs leading-5 text-muted">{copy.redactionText}</p>
           {removedCount ? <p className="mt-2 text-xs font-semibold text-violet-cta">{copy.redactedCount(removedCount)}</p> : null}
@@ -2468,8 +2491,9 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         </section>
       )}
 
-      <section ref={analysisRef} className="min-w-0 max-w-full rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
-        <div className="z-10 -mx-4 -mt-4 border-b border-line bg-white/95 p-4 backdrop-blur sm:-mx-5 sm:-mt-5 sm:p-5 xl:sticky xl:top-24">
+      <section ref={analysisRef} className="min-w-0 max-w-full rounded-md border border-line bg-white p-3 shadow-soft sm:p-4">
+        {!hasAiReport ? (
+        <div className="z-10 -mx-3 -mt-3 border-b border-line bg-white/95 p-4 backdrop-blur sm:-mx-4 sm:-mt-4 xl:sticky xl:top-24">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">{copy.analysisLabel}</p>
@@ -2497,6 +2521,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               </button>
           </div>
         </div>
+        ) : null}
 
         {!hasMaterial ? (
           <p className="mt-5 text-sm leading-7 text-muted">{copy.emptyText}</p>
@@ -2505,12 +2530,12 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         ) : aiStatus === "error" || aiStatus === "unavailable" ? (
           <AiAnalysisErrorCard copy={copy} onRetry={() => void improveWithAI()} />
         ) : hasAiReport ? (
-          <div className="mt-5 min-w-0 space-y-5">
-            <div ref={resultFocusRef} className="grid min-w-0 scroll-mt-28 gap-4 xl:grid-cols-[minmax(280px,0.78fr)_minmax(0,1.22fr)]">
+          <div className="min-w-0 space-y-4">
+            <div ref={resultFocusRef} className="grid min-w-0 scroll-mt-28 gap-4 lg:grid-cols-[minmax(230px,0.36fr)_minmax(0,0.64fr)]">
               <div className="min-w-0 rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
                 <h2 className="mt-2 text-xl font-semibold leading-tight text-ink">{result.topic.title[locale]}</h2>
-                <p className="mt-3 text-muted">{result.reading}</p>
+                <p className="mt-3 text-muted">{displayReport.user_summary || result.reading}</p>
                 <div className="mt-4 rounded-md border border-line bg-white p-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
                     {locale === "it"
@@ -2524,49 +2549,46 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                   <p className="mt-1 text-sm font-semibold text-ink">
                     {[files.length ? `${files.length} file` : null, city || province || region || null].filter(Boolean).join(" - ") ||
                       (locale === "it" ? "Testo del preventivo" : locale === "en" ? "Quote text" : locale === "es" ? "Texto del presupuesto" : "Texte du devis")}
-                  </p>
+                    </p>
                 </div>
               </div>
-              {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
+              {hasText ? (
+                <QuoteQualityPanel
+                  result={quality}
+                  locale={locale}
+                  onPublish={openDiscussion}
+                  publishLabel={formCopy.publishPrivate}
+                  actionText={displayReport.recommended_next_action}
+                />
+              ) : null}
             </div>
 
-            <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.62fr)]">
-              <div className="min-w-0 rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h2 className="text-base font-semibold text-ink">
-                      {locale === "it"
-                        ? "Abbiamo letto il tuo preventivo"
-                        : locale === "en"
-                          ? "We read your Italian quote"
-                          : locale === "es"
-                            ? "Hemos leído tu presupuesto italiano"
-                            : "Nous avons lu votre devis italien"}
-                    </h2>
-                    <p className="mt-2 text-muted">{displayReport.user_summary}</p>
+            {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
+
+            <section className="min-w-0 rounded-md border border-line bg-white p-4 shadow-sm">
+              <h2 className="text-base font-semibold text-ink">{copy.comparison}</h2>
+              <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <CompactReportCard title={copy.included} items={displayReport.included_items} />
+                <CompactReportCard title={copy.unclear} items={displayReport.unclear_items} />
+                <CompactReportCard title={copy.questions} items={displayReport.questions_to_ask} />
+                <CompactReportCard title={copy.publicPost} text={communityDiscussion} />
+              </div>
+              <details className="mt-4 rounded-md border border-line bg-cream p-3">
+                <summary className="cursor-pointer text-sm font-semibold text-ink">
+                  {locale === "it" ? "Vedi analisi completa" : locale === "en" ? "See full analysis" : locale === "es" ? "Ver análisis completo" : "Voir l'analyse complète"}
+                </summary>
+                <div className="mt-4 space-y-4">
+                  <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
+                  <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                    <Block title={copy.included} items={displayReport.included_items} />
+                    <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
+                    <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
+                    <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
                   </div>
-                  <span className="inline-flex w-fit shrink-0 rounded-md bg-white px-3 py-2 text-xs font-semibold text-violet-cta shadow-sm">
-                    {detectedServiceLabel}
-                  </span>
+                  <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
                 </div>
-              </div>
-              <div className="min-w-0 rounded-md border border-violet-cta/25 bg-white p-4 shadow-sm">
-                <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
-                <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                  <button
-                    type="button"
-                    onClick={openDiscussion}
-                    className="focus-ring inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
-                  >
-                    {formCopy.publishPrivate}
-                  </button>
-                  <VibesSupplierCta variant="light" className="min-h-12 w-full justify-center shadow-none">
-                    {formCopy.compareSuppliers}
-                  </VibesSupplierCta>
-                </div>
-              </div>
-            </div>
+              </details>
+            </section>
 
             <QuoteSupplierStrip
               active={hasAiReport}
@@ -2581,48 +2603,6 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               region={region}
               eventLabel={formCopy.eventOptions[eventType]}
             />
-
-            {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
-
-            <section className="min-w-0 rounded-md border border-line bg-white p-4 shadow-sm">
-              <div className="border-b border-line pb-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.comparison}</p>
-                <h2 className="mt-2 text-xl font-semibold text-ink">
-                  {locale === "it"
-                    ? "Cosa controllare prima di accettare"
-                    : locale === "en"
-                      ? "What to check before accepting"
-                      : locale === "es"
-                        ? "Qué revisar antes de aceptar"
-                        : "Ce qu'il faut vérifier avant d'accepter"}
-                </h2>
-              </div>
-              <div className="mt-4 space-y-4">
-                <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
-                <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-4">
-                  <Block title={copy.included} items={displayReport.included_items} />
-                  <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
-                  <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
-                  <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
-                </div>
-                <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                  <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
-                  <div className="rounded-md border border-line bg-white p-4">
-                    <h2 className="text-base font-semibold text-ink">{copy.publicPost}</h2>
-                    <div className="mt-3 max-h-72 overflow-auto whitespace-pre-line rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink">
-                      {communityDiscussion}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={openDiscussion}
-                      className="focus-ring mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-violet-cta px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-violet-hover"
-                    >
-                      {formCopy.publishPrivate}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
           </div>
         ) : (
           <AiAnalysisLoadingCard copy={copy} tip={loadingTip} />
@@ -2775,7 +2755,19 @@ const qualityPanelCopies: Record<
   }
 };
 
-function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; locale: QuoteAnalyzerLocale }) {
+function QuoteQualityPanel({
+  result,
+  locale,
+  onPublish,
+  publishLabel,
+  actionText
+}: {
+  result: QuoteScoreResult;
+  locale: QuoteAnalyzerLocale;
+  onPublish: () => void;
+  publishLabel: string;
+  actionText: string;
+}) {
   const copy = qualityPanelCopies[locale];
   const tone = qualityTone(result.score);
   const scoreText = result.score >= 10 ? "10" : result.score.toFixed(1).replace(".", locale === "en" ? "." : ",");
@@ -2790,7 +2782,7 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
 
   return (
     <div className={["min-w-0 rounded-md border p-4 shadow-sm", tone.shell].join(" ")}>
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(220px,0.28fr)]">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(220px,0.38fr)]">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.title}</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
@@ -2801,17 +2793,30 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
           <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/80">
             <div className={["h-full rounded-full", tone.bar].join(" ")} style={{ width: `${Math.min(100, Math.max(8, result.score * 10))}%` }} />
           </div>
-          <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-            {result.criteria.slice(0, 8).map((criterion) => (
-              <div key={criterion.id} className="rounded-md border border-line/70 bg-white/80 px-3 py-2">
+          <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+            {result.criteria.slice(0, 5).map((criterion) => (
+              <div key={criterion.id} className="rounded-md border border-line/70 bg-white/80 px-3 py-2 text-center">
                 <p className="truncate text-[11px] font-semibold text-muted">{criterion.label}</p>
                 <p className="mt-1 text-base font-semibold leading-none text-ink">{Math.round(criterion.points)}/100</p>
               </div>
             ))}
           </div>
-          <VibesSupplierCta variant="light" className="mt-4 min-h-11 shadow-none">
-            {copy.cta}
-          </VibesSupplierCta>
+          <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <button
+              type="button"
+              onClick={onPublish}
+              className="focus-ring inline-flex min-h-10 items-center justify-center rounded-md bg-violet-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-hover"
+            >
+              {publishLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() => document.getElementById("quote-full-details")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="focus-ring inline-flex min-h-10 items-center justify-center rounded-md border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-cream"
+            >
+              {detailLabel}
+            </button>
+          </div>
         </div>
         <div className="grid min-w-0 gap-3">
           <div className="rounded-md bg-white/75 p-3">
@@ -2820,12 +2825,12 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
           </div>
           <div className="rounded-md bg-white/75 p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{copy.action}</p>
-            <p className="mt-2 text-sm leading-6 text-muted">{result.recommendedAction}</p>
+            <p className="mt-2 text-sm leading-6 text-muted">{actionText || result.recommendedAction}</p>
           </div>
         </div>
       </div>
 
-      <details className="mt-4 min-w-0 rounded-md border border-line/70 bg-white/90 p-3">
+      <details id="quote-full-details" className="mt-4 min-w-0 scroll-mt-28 rounded-md border border-line/70 bg-white/90 p-3">
         <summary className="cursor-pointer rounded-md bg-cream px-3 py-2 text-sm font-semibold text-ink transition hover:bg-petal">
           {detailLabel}
         </summary>
@@ -2861,6 +2866,24 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
         ) : null}
       </details>
     </div>
+  );
+}
+
+function CompactReportCard({ title, items, text }: { title: string; items?: Array<string | QuoteFinding>; text?: string }) {
+  const previewText =
+    text ??
+    (items ?? [])
+      .slice(0, 3)
+      .map((item) => (typeof item === "string" ? item : `${item.label}: ${item.reason}`))
+      .join(" ");
+
+  return (
+    <article className="min-h-[7rem] rounded-md border border-line bg-[#fffdf8] p-4">
+      <h3 className="text-sm font-semibold text-ink">{title}</h3>
+      <p className="mt-2 line-clamp-4 text-xs leading-5 text-muted">
+        {previewText || "-"}
+      </p>
+    </article>
   );
 }
 

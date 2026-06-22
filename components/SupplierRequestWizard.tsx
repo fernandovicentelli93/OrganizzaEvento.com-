@@ -184,8 +184,13 @@ export function SupplierRequestWizard() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
+  const [otpProof, setOtpProof] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpMessage, setOtpMessage] = useState("");
+  const [otpError, setOtpError] = useState("");
   const [submitState, setSubmitState] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [createdCode, setCreatedCode] = useState("");
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
   const stepIndex = steps.findIndex((item) => item.id === step);
   const provinceOptions = useMemo(
@@ -225,21 +230,81 @@ export function SupplierRequestWizard() {
     setStep(previous.id);
   }
 
-  function sendOtp() {
-    if (!firstName.trim() || !email.includes("@") || phone.replace(/\D/g, "").length < 8 || !contactPreference) return;
-    setOtpSent(true);
+  function resetOtpState() {
+    setOtpSent(false);
     setOtpVerified(false);
+    setOtpProof("");
     setOtpCode("");
+    setOtpMessage("");
+    setOtpError("");
   }
 
-  function verifyOtp() {
-    if (otpCode.trim() === "123456") setOtpVerified(true);
+  async function sendOtp() {
+    if (!firstName.trim() || !email.includes("@") || phone.replace(/\D/g, "").length < 8 || !contactPreference) return;
+    setOtpLoading(true);
+    setOtpError("");
+    setOtpMessage("");
+    setOtpVerified(false);
+    setOtpProof("");
+    setOtpCode("");
+
+    try {
+      const response = await fetch("/api/leads/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone })
+      });
+      const data = (await response.json().catch(() => ({}))) as { ok?: boolean; message?: string; error?: string };
+
+      if (!response.ok || !data.ok) {
+        setOtpError("Non siamo riusciti a inviare il codice. Controlla il numero e riprova.");
+        return;
+      }
+
+      setOtpSent(true);
+      setOtpMessage(data.message || "Codice inviato via SMS.");
+    } catch {
+      setOtpError("Errore durante l'invio del codice. Riprova tra poco.");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  async function verifyOtp() {
+    if (!otpSent || !otpCode.trim()) return;
+    setOtpLoading(true);
+    setOtpError("");
+
+    try {
+      const response = await fetch("/api/leads/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code: otpCode })
+      });
+      const data = (await response.json().catch(() => ({}))) as { ok?: boolean; verified?: boolean; otpProof?: string };
+
+      if (!response.ok || !data.ok || !data.verified || !data.otpProof) {
+        setOtpVerified(false);
+        setOtpError("Codice non valido o scaduto. Controlla l'SMS e riprova.");
+        return;
+      }
+
+      setOtpProof(data.otpProof);
+      setOtpVerified(true);
+      setOtpMessage("Telefono verificato correttamente.");
+    } catch {
+      setOtpVerified(false);
+      setOtpError("Errore durante la verifica. Riprova tra poco.");
+    } finally {
+      setOtpLoading(false);
+    }
   }
 
   async function submitRequest() {
-    if (!briefComplete || !suppliersComplete || !otpVerified || !privacyAccepted || submitState === "sending") return;
+    if (!briefComplete || !suppliersComplete || !otpVerified || !otpProof || !privacyAccepted || submitState === "sending") return;
     setSubmitState("sending");
     setCreatedCode("");
+    setShowSuccessPopup(false);
 
     try {
       const response = await fetch("/api/leads/request", {
@@ -262,7 +327,7 @@ export function SupplierRequestWizard() {
           requestType: "lead_interno",
           source: "organizzaevento",
           sourcePath: "/richiesta-fornitori",
-          otpVerified: true,
+          otpProof,
           privacyAccepted,
           categories: suppliers.map((supplier) => {
             const category = categoryBySlug(supplier.categorySlug);
@@ -285,7 +350,9 @@ export function SupplierRequestWizard() {
       if (!response.ok || !data.ok) throw new Error("request_failed");
       setCreatedCode(data.requestCode ?? "");
       setSubmitState("success");
+      setShowSuccessPopup(true);
     } catch {
+      setShowSuccessPopup(false);
       setSubmitState("error");
     }
   }
@@ -603,7 +670,15 @@ export function SupplierRequestWizard() {
                 </label>
                 <label>
                   <FieldLabel>Telefono *</FieldLabel>
-                  <input value={phone} onChange={(event) => setPhone(event.target.value)} className="focus-ring mt-2 w-full rounded-md border border-line bg-cream px-4 py-3 text-sm text-ink" placeholder="+39 ..." />
+                  <input
+                    value={phone}
+                    onChange={(event) => {
+                      setPhone(event.target.value);
+                      resetOtpState();
+                    }}
+                    className="focus-ring mt-2 w-full rounded-md border border-line bg-cream px-4 py-3 text-sm text-ink"
+                    placeholder="+39 ..."
+                  />
                 </label>
                 <label className="md:col-span-2">
                   <FieldLabel>Preferenza oraria contatto *</FieldLabel>
@@ -619,7 +694,7 @@ export function SupplierRequestWizard() {
               <div className="mt-5 rounded-md border border-line bg-petal p-4">
                 <div>
                   <p className="text-sm font-bold text-ink">Verifica telefono</p>
-                  <p className="mt-1 text-xs leading-5 text-muted">Prima invia il codice OTP, poi inseriscilo nel campo di verifica. Demo locale: dopo il click usa il codice 123456.</p>
+                  <p className="mt-1 text-xs leading-5 text-muted">Prima invia il codice OTP, poi inseriscilo nel campo di verifica. Il codice arriva via SMS e serve per confermare il contatto.</p>
                 </div>
 
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -634,10 +709,10 @@ export function SupplierRequestWizard() {
                     <button
                       type="button"
                       onClick={sendOtp}
-                      disabled={!contactReady}
+                      disabled={!contactReady || otpLoading}
                       className="focus-ring mt-4 min-h-11 w-full rounded-md bg-ink px-4 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-45"
                     >
-                      {otpSent ? "Reinvia codice OTP" : "Invia codice OTP"}
+                      {otpLoading && !otpVerified ? "Invio..." : otpSent ? "Reinvia codice OTP" : "Invia codice OTP"}
                     </button>
                   </div>
 
@@ -661,16 +736,17 @@ export function SupplierRequestWizard() {
                       <button
                         type="button"
                         onClick={verifyOtp}
-                        disabled={!otpSent || otpVerified || !otpCode.trim()}
+                        disabled={!otpSent || otpVerified || !otpCode.trim() || otpLoading}
                         className="focus-ring min-h-11 rounded-md bg-violet-cta px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-45"
                       >
-                        Verifica
+                        {otpLoading && otpSent ? "Verifico..." : "Verifica"}
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {otpSent && !otpVerified ? <p className="mt-3 rounded-md bg-white px-3 py-2 text-xs font-semibold leading-5 text-muted">Codice inviato. Adesso inseriscilo nello step 2 e premi Verifica.</p> : null}
+                {otpMessage && !otpVerified ? <p className="mt-3 rounded-md bg-white px-3 py-2 text-xs font-semibold leading-5 text-muted">{otpMessage}</p> : null}
+                {otpError ? <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-900">{otpError}</p> : null}
                 {otpVerified ? <p className="mt-3 rounded-md bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">Contatto verificato. Ora puoi inviare la richiesta.</p> : null}
               </div>
 
@@ -709,7 +785,7 @@ export function SupplierRequestWizard() {
               <button
                 type="button"
                 onClick={submitRequest}
-                disabled={!otpVerified || !privacyAccepted || submitState === "sending"}
+                disabled={!otpVerified || !otpProof || !privacyAccepted || submitState === "sending"}
                 className="focus-ring min-h-11 rounded-md bg-violet-cta px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitState === "sending" ? "Invio in corso..." : "Invia richiesta"}
@@ -746,6 +822,34 @@ export function SupplierRequestWizard() {
           </div>
         </aside>
       </div>
+
+      {showSuccessPopup ? (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink/45 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="supplier-request-success-title">
+          <div className="relative w-full max-w-md rounded-lg border border-line bg-white p-6 shadow-2xl">
+            <button
+              type="button"
+              onClick={() => setShowSuccessPopup(false)}
+              className="focus-ring absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-md border border-line bg-cream text-lg font-bold text-ink"
+              aria-label="Chiudi conferma richiesta"
+            >
+              ×
+            </button>
+            <div className="flex items-center gap-3 pr-10">
+              <img src="/partners/vibes-planner/logo.jpg" alt="Vibes Planner" className="h-10 w-10 rounded-md object-contain" />
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-cta">Partnership attiva</p>
+            </div>
+            <h3 id="supplier-request-success-title" className="mt-5 text-2xl font-semibold leading-tight text-ink">Richiesta inviata. Ora ti aiutiamo noi.</h3>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Grazie alla nostra partnership con Vibes Planner, faremo arrivare la tua richiesta ai fornitori più in target e disponibili per il tuo evento.
+            </p>
+            <div className="mt-5 rounded-md border border-line bg-cream p-4">
+              <p className="text-sm font-bold text-ink">Tieni il telefono vicino</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Potresti ricevere una chiamata o un messaggio dai fornitori di Vibes Planner. Rispondere velocemente aiuta a bloccare disponibilità e dettagli.</p>
+            </div>
+            {createdCode ? <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted">Codice richiesta: {createdCode}</p> : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

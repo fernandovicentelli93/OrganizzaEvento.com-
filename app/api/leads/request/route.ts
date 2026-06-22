@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { NextResponse } from "next/server";
+import { verifyLeadOtpProof } from "@/lib/lead-otp-proof";
 import { sendInternalNotification } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 
@@ -41,7 +42,7 @@ type LeadRequestInput = {
   sourcePath?: string;
   utmSource?: string;
   utmCampaign?: string;
-  otpVerified?: boolean;
+  otpProof?: string;
   privacyAccepted?: boolean;
   categories?: LeadCategoryInput[];
 };
@@ -156,7 +157,7 @@ async function nextRequestCode(region: string, eventType: string) {
   return `OE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
 
-function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, request: Request) {
+function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, request: Request, otpVerified: boolean) {
   const phone = clean(input.phone);
   const eventDate = parseDate(input.eventDate) ?? parseDate(input.eventPeriod);
   const privacyAcceptedAt = input.privacyAccepted ? new Date() : null;
@@ -164,8 +165,8 @@ function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, requ
   expiresAt.setDate(expiresAt.getDate() + 7);
 
   return {
-    status: input.otpVerified ? "otp_verified" : "otp_pending",
-    otpStatus: input.otpVerified ? "verified" : "pending",
+    status: otpVerified ? "otp_verified" : "otp_pending",
+    otpStatus: otpVerified ? "verified" : "pending",
     firstName: clean(input.firstName),
     lastName: optionalClean(input.lastName),
     email: cleanEmail(input.email),
@@ -188,7 +189,7 @@ function baseLeadData(input: LeadRequestInput, category: LeadCategoryInput, requ
     eventType: clean(input.eventType),
     eventDate,
     expiresAt,
-    otpVerifiedAt: input.otpVerified ? new Date() : null,
+    otpVerifiedAt: otpVerified ? new Date() : null,
     privacyAcceptedAt,
     internalNotes: optionalClean(
       [
@@ -218,9 +219,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "supplier_notes_too_short" }, { status: 400 });
     }
 
+    const otpVerified = verifyLeadOtpProof(clean(input.phone), input.otpProof);
+    if (!otpVerified) {
+      return NextResponse.json({ ok: false, error: "otp_not_verified" }, { status: 403 });
+    }
+
     const parentCategory = categories[0];
     const requestCode = await nextRequestCode(clean(input.region), clean(input.eventType));
-    const parentData = baseLeadData(input, parentCategory, request);
+    const parentData = baseLeadData(input, parentCategory, request, otpVerified);
 
     const created = await prisma.$transaction(async (tx) => {
       const leadRequest = leadRequestDelegate(tx);
@@ -237,7 +243,7 @@ export async function POST(request: Request) {
         children.push(
           await leadRequest.create({
             data: {
-              ...baseLeadData(input, category, request),
+              ...baseLeadData(input, category, request, otpVerified),
               requestCode: `${requestCode}-${index + 2}`,
               parentId: parent.id,
               childIndex: index + 2

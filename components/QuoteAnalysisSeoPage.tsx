@@ -606,7 +606,7 @@ export function QuoteAnalysisSeoPage({ page, locale = "it" }: { page: QuoteAnaly
               {c.findAlternatives}
             </VibesSupplierCta>
           </div>
-          <div className="rounded-md border border-line bg-[#fffdfa] p-3 shadow-sm sm:p-4 lg:p-5">
+          <div className="min-w-0 overflow-hidden rounded-md border border-line bg-[#fffdfa] p-3 shadow-sm sm:p-4 lg:p-5">
             <QuoteAnalyzer locale={locale} defaultService={service?.slug ?? "altro"} />
           </div>
         </div>

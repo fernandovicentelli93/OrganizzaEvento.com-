@@ -1497,7 +1497,7 @@ function QuoteSupplierStrip({
   if (!active || !suppliers.length) return null;
 
   return (
-    <section className="rounded-md border border-violet-cta/20 bg-white p-3 shadow-sm">
+    <section className="min-w-0 overflow-hidden rounded-md border border-violet-cta/20 bg-white p-3 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.source}</p>
@@ -1508,9 +1508,9 @@ function QuoteSupplierStrip({
           {suppliers.length} {copy.count}
         </p>
       </div>
-      <div className="mt-3 flex snap-x gap-3 overflow-x-auto pb-2">
+      <div className="mt-3 flex w-full min-w-0 max-w-full snap-x gap-3 overflow-x-auto overscroll-x-contain pb-2">
         {suppliers.map((supplier) => (
-          <article key={supplier.id} className="flex w-[16.5rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm sm:w-[18rem]">
+          <article key={supplier.id} className="flex w-[15.75rem] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-cream shadow-sm sm:w-[18rem]">
             <div className="relative h-32 bg-petal sm:h-36">
               {supplier.imageUrl ? (
                 <img src={supplier.imageUrl} alt={supplier.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
@@ -2342,13 +2342,13 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
   return (
     <>
       {showAnalysisLoading ? <AiAnalysisLoadingOverlay copy={copy} tip={loadingTip} /> : null}
-      <div className="grid gap-6">
+      <div className="grid min-w-0 max-w-full gap-6 overflow-hidden">
       {shouldShowInputPanel ? (
-      <section className="rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
-        <div className="grid gap-4 xl:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)] xl:items-stretch">
+      <section className="min-w-0 max-w-full rounded-md border border-line bg-white p-4 shadow-sm sm:p-5">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)] xl:items-stretch">
           {uploadControl}
 
-          <label className="block">
+          <label className="block min-w-0">
             <span className="block text-sm font-semibold text-ink">{copy.inputLabel}</span>
             <textarea
               value={rawText}
@@ -2433,7 +2433,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
 
       </section>
       ) : (
-        <section className="rounded-md border border-line bg-white p-4 shadow-sm">
+        <section className="min-w-0 max-w-full rounded-md border border-line bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">
@@ -2468,7 +2468,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         </section>
       )}
 
-      <section ref={analysisRef} className="rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
+      <section ref={analysisRef} className="min-w-0 max-w-full rounded-md border border-line bg-white p-4 shadow-soft sm:p-5">
         <div className="z-10 -mx-4 -mt-4 border-b border-line bg-white/95 p-4 backdrop-blur sm:-mx-5 sm:-mt-5 sm:p-5 xl:sticky xl:top-24">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -2505,9 +2505,9 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
         ) : aiStatus === "error" || aiStatus === "unavailable" ? (
           <AiAnalysisErrorCard copy={copy} onRetry={() => void improveWithAI()} />
         ) : hasAiReport ? (
-          <div className="mt-5 space-y-5">
-            <div ref={resultFocusRef} className="grid scroll-mt-28 gap-4 xl:grid-cols-[minmax(280px,0.78fr)_minmax(0,1.22fr)]">
-              <div className="rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink shadow-sm">
+          <div className="mt-5 min-w-0 space-y-5">
+            <div ref={resultFocusRef} className="grid min-w-0 scroll-mt-28 gap-4 xl:grid-cols-[minmax(280px,0.78fr)_minmax(0,1.22fr)]">
+              <div className="min-w-0 rounded-md border border-line bg-cream p-4 text-sm leading-7 text-ink shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.topicTitle}</p>
                 <h2 className="mt-2 text-xl font-semibold leading-tight text-ink">{result.topic.title[locale]}</h2>
                 <p className="mt-3 text-muted">{result.reading}</p>
@@ -2530,8 +2530,8 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               {hasText ? <QuoteQualityPanel result={quality} locale={locale} /> : null}
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.62fr)]">
-              <div className="rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
+            <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(300px,0.62fr)]">
+              <div className="min-w-0 rounded-md border border-violet-cta/20 bg-petal p-4 text-sm leading-7 text-ink">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="text-base font-semibold text-ink">
@@ -2550,7 +2550,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
                   </span>
                 </div>
               </div>
-              <div className="rounded-md border border-violet-cta/25 bg-white p-4 shadow-sm">
+              <div className="min-w-0 rounded-md border border-violet-cta/25 bg-white p-4 shadow-sm">
                 <h2 className="text-base font-semibold text-ink">{formCopy.nextActionTitle}</h2>
                 <p className="mt-2 text-sm leading-7 text-muted">{displayReport.recommended_next_action}</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
@@ -2584,7 +2584,7 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
 
             {!hasText && files.length ? <p className="rounded-md bg-petal p-4 text-sm leading-6 text-muted">{copy.fileOnlyText}</p> : null}
 
-            <section className="rounded-md border border-line bg-white p-4 shadow-sm">
+            <section className="min-w-0 rounded-md border border-line bg-white p-4 shadow-sm">
               <div className="border-b border-line pb-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.comparison}</p>
                 <h2 className="mt-2 text-xl font-semibold text-ink">
@@ -2599,13 +2599,13 @@ export function QuoteAnalyzer({ locale = "it", defaultService = "altro" }: { loc
               </div>
               <div className="mt-4 space-y-4">
                 <MetricGrid report={displayReport} labels={formCopy} locale={locale} />
-                <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                <div className="grid min-w-0 gap-4 lg:grid-cols-2 xl:grid-cols-4">
                   <Block title={copy.included} items={displayReport.included_items} />
                   <FindingBlock title={formCopy.missingTitle} items={displayReport.missing_items} locale={locale} />
                   <FindingBlock title={copy.unclear} items={displayReport.unclear_items} locale={locale} />
                   <Block title={formCopy.hiddenCostsTitle} items={displayReport.possible_hidden_costs} />
                 </div>
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+                <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                   <Block title={copy.questions} items={displayReport.questions_to_ask} accent />
                   <div className="rounded-md border border-line bg-white p-4">
                     <h2 className="text-base font-semibold text-ink">{copy.publicPost}</h2>
@@ -2789,9 +2789,9 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
           : "Voir plus de détails sur le devis";
 
   return (
-    <div className={["rounded-md border p-4 shadow-sm", tone.shell].join(" ")}>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(220px,0.28fr)]">
-        <div>
+    <div className={["min-w-0 rounded-md border p-4 shadow-sm", tone.shell].join(" ")}>
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(220px,0.28fr)]">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-cta">{copy.title}</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <p className="text-5xl font-semibold leading-none text-ink">{scoreText}/10</p>
@@ -2801,7 +2801,7 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
           <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/80">
             <div className={["h-full rounded-full", tone.bar].join(" ")} style={{ width: `${Math.min(100, Math.max(8, result.score * 10))}%` }} />
           </div>
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-4">
             {result.criteria.slice(0, 8).map((criterion) => (
               <div key={criterion.id} className="rounded-md border border-line/70 bg-white/80 px-3 py-2">
                 <p className="truncate text-[11px] font-semibold text-muted">{criterion.label}</p>
@@ -2813,7 +2813,7 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
             {copy.cta}
           </VibesSupplierCta>
         </div>
-        <div className="grid gap-3">
+        <div className="grid min-w-0 gap-3">
           <div className="rounded-md bg-white/75 p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">{copy.risk}</p>
             <p className="mt-2 text-sm font-semibold leading-6 text-ink">{result.mainRisk}</p>
@@ -2825,13 +2825,13 @@ function QuoteQualityPanel({ result, locale }: { result: QuoteScoreResult; local
         </div>
       </div>
 
-      <details className="mt-4 rounded-md border border-line/70 bg-white/90 p-3">
+      <details className="mt-4 min-w-0 rounded-md border border-line/70 bg-white/90 p-3">
         <summary className="cursor-pointer rounded-md bg-cream px-3 py-2 text-sm font-semibold text-ink transition hover:bg-petal">
           {detailLabel}
         </summary>
-        <div className="mt-3 grid gap-2">
+        <div className="mt-3 grid min-w-0 gap-2">
           {result.criteria.map((criterion) => (
-            <div key={criterion.id} className="grid gap-2 rounded-md bg-cream px-3 py-3 text-sm sm:grid-cols-[minmax(150px,0.45fr)_minmax(80px,0.15fr)_minmax(180px,1fr)] sm:items-center">
+            <div key={criterion.id} className="grid min-w-0 gap-2 rounded-md bg-cream px-3 py-3 text-sm sm:grid-cols-[minmax(150px,0.45fr)_minmax(80px,0.15fr)_minmax(180px,1fr)] sm:items-center">
               <p className="font-semibold text-ink">{criterion.label}</p>
               <p className="text-muted">
                 {criterion.points}/{criterion.maxPoints}

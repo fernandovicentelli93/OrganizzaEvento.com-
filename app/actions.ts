@@ -100,15 +100,17 @@ async function requireAdmin() {
 export async function adminLoginAction(formData: FormData) {
   const email = textValue(formData, "email").toLowerCase();
   const password = textValue(formData, "password");
+  const returnTo = textValue(formData, "returnTo");
+  const safeReturnTo = returnTo.startsWith("/gestione") || returnTo.startsWith("/backend") ? returnTo : ADMIN_HOME;
   const expected = process.env.ADMIN_SECRET;
   const expectedEmail = (process.env.ADMIN_EMAIL ?? "supportoforumevento@gmail.com").toLowerCase();
 
   if (!expected) {
-    redirect(`${ADMIN_HOME}?errore=config`);
+    redirect(`${safeReturnTo}?errore=config`);
   }
 
   if (email !== expectedEmail || password !== expected) {
-    redirect(`${ADMIN_HOME}?errore=1`);
+    redirect(`${safeReturnTo}?errore=1`);
   }
 
   const cookieStore = await cookies();
@@ -120,7 +122,7 @@ export async function adminLoginAction(formData: FormData) {
     path: "/"
   });
 
-  redirect(ADMIN_HOME);
+  redirect(safeReturnTo);
 }
 
 export async function adminLogoutAction() {
@@ -1085,6 +1087,7 @@ export async function adminUpdateSupplierRequestStatus(formData: FormData) {
 export async function adminUpdateLeadRequestStatus(formData: FormData) {
   const leadId = textValue(formData, "leadId");
   const status = textValue(formData, "status") as LeadRequestStatusValue;
+  const returnTo = textValue(formData, "returnTo");
   await requireAdmin();
 
   if (!leadId || !LEAD_REQUEST_STATUSES.includes(status as (typeof LEAD_REQUEST_STATUSES)[number])) {
@@ -1107,7 +1110,8 @@ export async function adminUpdateLeadRequestStatus(formData: FormData) {
 
   revalidatePath("/backend");
   revalidatePath("/gestione");
-  redirect(`${ADMIN_HOME}?sezione=lead`);
+  revalidatePath("/gestione/contatti");
+  redirect(returnTo.startsWith("/gestione") ? returnTo : `${ADMIN_HOME}?sezione=lead`);
 }
 
 export async function adminUpdateSupportRequestStatus(formData: FormData) {

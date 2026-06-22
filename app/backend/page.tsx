@@ -125,71 +125,9 @@ type LeadRequestDelegate = {
   findMany: (args: unknown) => Promise<LeadRequestRow[]>;
   count: (args?: unknown) => Promise<number>;
 };
-type LeadDashboardData = {
-  leadRequests: LeadRequestRow[];
-  filteredLeadCount: number;
-  newLeadCount: number;
-  otpVerifiedLeadCount: number;
-  todayLeadCount: number;
-  confirmedLeadCount: number;
-  leadUnavailable: boolean;
-};
 
 function leadRequestDelegate(client: unknown) {
-  return (client as { leadRequest?: LeadRequestDelegate }).leadRequest;
-}
-
-function emptyLeadDashboardData(leadUnavailable = false): LeadDashboardData {
-  return {
-    leadRequests: [],
-    filteredLeadCount: 0,
-    newLeadCount: 0,
-    otpVerifiedLeadCount: 0,
-    todayLeadCount: 0,
-    confirmedLeadCount: 0,
-    leadUnavailable
-  };
-}
-
-async function loadLeadDashboardData(leadWhere: Record<string, unknown>, startOfToday: Date): Promise<LeadDashboardData> {
-  const leadRequest = leadRequestDelegate(prisma);
-  if (!leadRequest?.findMany || !leadRequest.count) {
-    console.error("Lead dashboard unavailable: Prisma leadRequest delegate is missing.");
-    return emptyLeadDashboardData(true);
-  }
-
-  try {
-    const [leadRequests, filteredLeadCount, newLeadCount, otpVerifiedLeadCount, todayLeadCount, confirmedLeadCount] =
-      await Promise.all([
-        leadRequest.findMany({
-          where: leadWhere,
-          orderBy: { createdAt: "desc" },
-          take: 120,
-          include: {
-            parent: { select: { requestCode: true } },
-            _count: { select: { children: true } }
-          }
-        }),
-        leadRequest.count({ where: leadWhere }),
-        leadRequest.count({ where: { status: "new_lead" } }),
-        leadRequest.count({ where: { otpStatus: "verified" } }),
-        leadRequest.count({ where: { createdAt: { gte: startOfToday } } }),
-        leadRequest.count({ where: { status: "confirmed" } })
-      ]);
-
-    return {
-      leadRequests,
-      filteredLeadCount,
-      newLeadCount,
-      otpVerifiedLeadCount,
-      todayLeadCount,
-      confirmedLeadCount,
-      leadUnavailable: false
-    };
-  } catch (error) {
-    console.error("Lead dashboard query failed", error);
-    return emptyLeadDashboardData(true);
-  }
+  return (client as { leadRequest: LeadRequestDelegate }).leadRequest;
 }
 
 function callStatusTone(status?: string | null) {
@@ -457,8 +395,24 @@ export default async function BackendPage({ searchParams }: PageProps) {
     createdAt: { gte: selectedDay.start, lt: selectedDay.end }
   };
 
-  const { leadRequests, filteredLeadCount, newLeadCount, otpVerifiedLeadCount, todayLeadCount, confirmedLeadCount, leadUnavailable } =
-    await loadLeadDashboardData(leadWhere, startOfToday);
+  const leadRequest = leadRequestDelegate(prisma);
+  const [leadRequests, filteredLeadCount, newLeadCount, otpVerifiedLeadCount, todayLeadCount, confirmedLeadCount] =
+    await Promise.all([
+      leadRequest.findMany({
+        where: leadWhere,
+        orderBy: { createdAt: "desc" },
+        take: 120,
+        include: {
+          parent: { select: { requestCode: true } },
+          _count: { select: { children: true } }
+        }
+      }),
+      leadRequest.count({ where: leadWhere }),
+      leadRequest.count({ where: { status: "new_lead" } }),
+      leadRequest.count({ where: { otpStatus: "verified" } }),
+      leadRequest.count({ where: { createdAt: { gte: startOfToday } } }),
+      leadRequest.count({ where: { status: "confirmed" } })
+    ]);
 
   const [
     supplierRequests,
@@ -749,15 +703,16 @@ export default async function BackendPage({ searchParams }: PageProps) {
               verifica OTP, provenienza, budget, evento e stato operativo.
             </p>
           </div>
-          <TagBadge tone="violet">{filteredLeadCount} lead filtrati</TagBadge>
-        </div>
-
-        {leadUnavailable ? (
-          <div className="mt-5 rounded-[1.1rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-            La sezione lead non ha risposto correttamente. Il resto del backend resta utilizzabile: appena il database e Prisma
-            risultano allineati, i lead torneranno visibili qui.
+          <div className="flex flex-wrap items-center gap-2">
+            <TagBadge tone="violet">{filteredLeadCount} lead filtrati</TagBadge>
+            <a
+              href="/gestione/contatti"
+              className="focus-ring rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-cta"
+            >
+              Apri contatti full screen
+            </a>
           </div>
-        ) : null}
+        </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <article className="rounded-[1.1rem] border border-line bg-cream p-4">

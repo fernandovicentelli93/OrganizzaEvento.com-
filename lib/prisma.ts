@@ -95,9 +95,60 @@ function unavailablePrismaClient() {
   ) as PrismaClient;
 }
 
+function safeLeadRequestDelegate(client: PrismaClient) {
+  const delegate = (client as unknown as { leadRequest?: Record<string, unknown> }).leadRequest;
+  if (!delegate) {
+    return {
+      findMany: async () => [],
+      count: async () => 0
+    };
+  }
+
+  return new Proxy(delegate, {
+    get: (target, property) => {
+      const value = target[property as keyof typeof target];
+      if (property === "findMany" && typeof value === "function") {
+        return async (...args: unknown[]) => {
+          try {
+            return await value.apply(target, args);
+          } catch (error) {
+            console.error("LeadRequest findMany unavailable", error);
+            return [];
+          }
+        };
+      }
+
+      if (property === "count" && typeof value === "function") {
+        return async (...args: unknown[]) => {
+          try {
+            return await value.apply(target, args);
+          } catch (error) {
+            console.error("LeadRequest count unavailable", error);
+            return 0;
+          }
+        };
+      }
+
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
+}
+
+function runtimeSafePrismaClient(client: PrismaClient) {
+  return new Proxy(client, {
+    get: (target, property, receiver) => {
+      if (property === "leadRequest") {
+        return safeLeadRequestDelegate(target);
+      }
+
+      return Reflect.get(target, property, receiver);
+    }
+  }) as PrismaClient;
+}
+
 export const prisma =
   globalForPrisma.prisma ??
-  (databaseUrl ? new PrismaClient(prismaOptions) : unavailablePrismaClient());
+  (databaseUrl ? runtimeSafePrismaClient(new PrismaClient(prismaOptions)) : unavailablePrismaClient());
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;

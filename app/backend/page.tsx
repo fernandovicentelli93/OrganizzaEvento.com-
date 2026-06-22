@@ -7,6 +7,7 @@
   adminUpdateAnswerStatus,
   adminUpdateQuestionStatus,
   adminUpdateReportStatus,
+  adminUpdateLeadRequestStatus,
   adminUpdateSupportRequestStatus,
   adminUpdateSupplierRequestStatus,
   isAdminAuthenticated
@@ -42,6 +43,12 @@ type PageProps = {
     stato?: string;
     categoria?: string;
     cerca?: string;
+    leadStato?: string;
+    leadRegione?: string;
+    leadProvincia?: string;
+    leadCategoria?: string;
+    leadFonte?: string;
+    leadCerca?: string;
   }>;
 };
 
@@ -64,14 +71,87 @@ const accountStatusLabels = {
   deleted: "Eliminato"
 };
 
+const leadStatusLabels = {
+  new_lead: "Nuovo",
+  otp_pending: "OTP in attesa",
+  otp_verified: "OTP verificato",
+  assigned: "Assegnato",
+  contacted: "Contattato",
+  confirmed: "Confermato",
+  closed: "Chiuso",
+  archived: "Archiviato",
+  spam: "Spam"
+};
+
+const leadOtpLabels = {
+  not_requested: "Non richiesto",
+  pending: "In attesa",
+  verified: "Verificato",
+  failed: "Fallito"
+};
+
+type LeadRequestStatusKey = keyof typeof leadStatusLabels;
+type LeadOtpStatusKey = keyof typeof leadOtpLabels;
+type LeadRequestRow = {
+  id: string;
+  requestCode: string;
+  parent: { requestCode: string } | null;
+  _count: { children: number };
+  status: LeadRequestStatusKey;
+  otpStatus: LeadOtpStatusKey;
+  firstName: string;
+  lastName: string | null;
+  email: string | null;
+  phone: string;
+  notes: string | null;
+  requestType: string;
+  source: string;
+  utmSource: string | null;
+  region: string;
+  province: string;
+  macroCategory: string;
+  category: string;
+  supplierProfile: string | null;
+  supplierUrl: string | null;
+  budgetRange: string | null;
+  guestsCount: number | null;
+  eventType: string;
+  eventDate: Date | null;
+  expiresAt: Date | null;
+  confirmedAt: Date | null;
+  createdAt: Date;
+};
+type LeadRequestDelegate = {
+  findMany: (args: unknown) => Promise<LeadRequestRow[]>;
+  count: (args?: unknown) => Promise<number>;
+};
+
+function leadRequestDelegate(client: unknown) {
+  return (client as { leadRequest: LeadRequestDelegate }).leadRequest;
+}
+
 function callStatusTone(status?: string | null) {
   if (status && ["answered", "in-progress", "completed"].includes(status)) return "green" as const;
   if (status && ["busy", "failed", "no-answer", "canceled"].includes(status)) return "amber" as const;
   return "gray" as const;
 }
 
+function leadStatusTone(status?: string | null) {
+  if (status && ["otp_verified", "assigned", "confirmed"].includes(status)) return "green" as const;
+  if (status && ["new_lead", "otp_pending", "contacted"].includes(status)) return "amber" as const;
+  return "gray" as const;
+}
+
+function leadRowClass(status?: string | null) {
+  if (status && ["otp_verified", "assigned", "confirmed"].includes(status)) return "bg-[#B7F16A]/60";
+  if (status && ["contacted", "closed"].includes(status)) return "bg-[#F4DF72]/60";
+  if (status && ["archived", "spam"].includes(status)) return "bg-slate-100";
+  return "bg-white";
+}
+
 const backendSections = [
   { id: "fornitori", label: "Fornitori in piattaforma", helper: "Vista principale" },
+  { id: "lead", label: "Lead ricevuti", helper: "Contatti interni" },
   { id: "chiamate", label: "Chiamate Twilio", helper: "Telefonate fornitori" },
   { id: "iscritti", label: "Iscritti e connessioni", helper: "Account e traffico reale" },
   { id: "account", label: "Schede account", helper: "Profili completi" },
@@ -116,6 +196,10 @@ function accountCategory(account: {
 
 function compactDateTime(value: Date | null | undefined) {
   return value ? formatDate(value) : "Mai registrata";
+}
+
+function tableDate(value: Date | null | undefined) {
+  return value ? formatDate(value) : "-";
 }
 
 function normalized(value: string | null | undefined) {
@@ -229,6 +313,12 @@ export default async function BackendPage({ searchParams }: PageProps) {
   const statusFilter = params.stato === "active" || params.stato === "suspended" || params.stato === "deleted" ? params.stato : "";
   const categoryFilter = (params.categoria ?? "").trim();
   const searchFilter = (params.cerca ?? "").trim();
+  const leadStatusFilter = Object.keys(leadStatusLabels).includes(params.leadStato ?? "") ? params.leadStato ?? "" : "";
+  const leadRegionFilter = (params.leadRegione ?? "").trim();
+  const leadProvinceFilter = (params.leadProvincia ?? "").trim();
+  const leadCategoryFilter = (params.leadCategoria ?? "").trim();
+  const leadSourceFilter = (params.leadFonte ?? "").trim();
+  const leadSearchFilter = (params.leadCerca ?? "").trim();
   const accountWhere: Prisma.UserAccountWhereInput = {
     ...(roleFilter ? { role: roleFilter } : {}),
     ...(statusFilter ? { status: statusFilter } : {}),
@@ -257,6 +347,45 @@ export default async function BackendPage({ searchParams }: PageProps) {
         }
       : {})
   };
+  const leadWhere: Record<string, unknown> = {
+    ...(leadStatusFilter ? { status: leadStatusFilter as LeadRequestStatusKey } : {}),
+    ...(leadRegionFilter ? { region: { contains: leadRegionFilter, mode: "insensitive" } } : {}),
+    ...(leadProvinceFilter ? { province: { contains: leadProvinceFilter, mode: "insensitive" } } : {}),
+    ...(leadCategoryFilter
+      ? {
+          OR: [
+            { macroCategory: { contains: leadCategoryFilter, mode: "insensitive" } },
+            { category: { contains: leadCategoryFilter, mode: "insensitive" } },
+            { supplierProfile: { contains: leadCategoryFilter, mode: "insensitive" } }
+          ]
+        }
+      : {}),
+    ...(leadSourceFilter
+      ? {
+          OR: [
+            { source: { contains: leadSourceFilter, mode: "insensitive" } },
+            { utmSource: { contains: leadSourceFilter, mode: "insensitive" } },
+            { utmCampaign: { contains: leadSourceFilter, mode: "insensitive" } }
+          ]
+        }
+      : {}),
+    ...(leadSearchFilter
+      ? {
+          AND: [
+            {
+              OR: [
+                { requestCode: { contains: leadSearchFilter, mode: "insensitive" } },
+                { firstName: { contains: leadSearchFilter, mode: "insensitive" } },
+                { lastName: { contains: leadSearchFilter, mode: "insensitive" } },
+                { email: { contains: leadSearchFilter, mode: "insensitive" } },
+                { phone: { contains: leadSearchFilter, mode: "insensitive" } },
+                { notes: { contains: leadSearchFilter, mode: "insensitive" } }
+              ]
+            }
+          ]
+        }
+      : {})
+  };
   const selectedDayVisitWhere = {
     isBot: false,
     createdAt: { gte: selectedDay.start, lt: selectedDay.end }
@@ -265,6 +394,25 @@ export default async function BackendPage({ searchParams }: PageProps) {
     source: "public_form",
     createdAt: { gte: selectedDay.start, lt: selectedDay.end }
   };
+
+  const leadRequest = leadRequestDelegate(prisma);
+  const [leadRequests, filteredLeadCount, newLeadCount, otpVerifiedLeadCount, todayLeadCount, confirmedLeadCount] =
+    await Promise.all([
+      leadRequest.findMany({
+        where: leadWhere,
+        orderBy: { createdAt: "desc" },
+        take: 120,
+        include: {
+          parent: { select: { requestCode: true } },
+          _count: { select: { children: true } }
+        }
+      }),
+      leadRequest.count({ where: leadWhere }),
+      leadRequest.count({ where: { status: "new_lead" } }),
+      leadRequest.count({ where: { otpStatus: "verified" } }),
+      leadRequest.count({ where: { createdAt: { gte: startOfToday } } }),
+      leadRequest.count({ where: { status: "confirmed" } })
+    ]);
 
   const [
     supplierRequests,
@@ -479,6 +627,7 @@ export default async function BackendPage({ searchParams }: PageProps) {
     { label: "Risposte pubbliche", value: publishedAnswerCount, helper: "Contenuti visibili nel forum" },
     { label: "Voti utili", value: usefulVoteCount, helper: "Segnali della community" },
     { label: "Segnalazioni aperte", value: openReportCount, helper: "Da controllare" },
+    { label: "Lead interni nuovi", value: newLeadCount, helper: `${otpVerifiedLeadCount} telefoni verificati` },
     { label: "Richieste fornitori nuove", value: newSupplierRequestCount, helper: "Contatti da gestire" },
     { label: "Supporto nuovo", value: newSupportRequestCount, helper: "Messaggi dal widget" },
     { label: "Clienti registrati", value: clientAccountCount, helper: "Account attivi" },
@@ -543,6 +692,234 @@ export default async function BackendPage({ searchParams }: PageProps) {
           Pulizia completata: {params.pulizia} record diagnostici/test rimossi.
         </div>
       ) : null}
+
+      <section className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "lead" ? "" : "hidden"}`}>
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-violet-cta">CRM lead</p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">Gestione lead ricevuti</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+              Qui arrivano i contatti dal modulo interno: richiesta principale, eventuali richieste figlie per categoria,
+              verifica OTP, provenienza, budget, evento e stato operativo.
+            </p>
+          </div>
+          <TagBadge tone="violet">{filteredLeadCount} lead filtrati</TagBadge>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Nuovi</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{newLeadCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Lead non ancora lavorati.</p>
+          </article>
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">OTP verificati</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{otpVerifiedLeadCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Contatti con telefono confermato.</p>
+          </article>
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Arrivati oggi</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{todayLeadCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Nuove richieste dalla mezzanotte.</p>
+          </article>
+          <article className="rounded-[1.1rem] border border-line bg-cream p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">Confermati</p>
+            <p className="mt-3 text-3xl font-semibold text-ink">{confirmedLeadCount}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">Lead validati per lavorazione commerciale.</p>
+          </article>
+        </div>
+
+        <form className="mt-5 grid gap-3 rounded-[1.1rem] border border-line bg-cream p-4 md:grid-cols-2 xl:grid-cols-6">
+          <input type="hidden" name="sezione" value="lead" />
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Stato</span>
+            <select
+              name="leadStato"
+              defaultValue={leadStatusFilter}
+              className="focus-ring mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink"
+            >
+              <option value="">Tutti</option>
+              {Object.entries(leadStatusLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Regione</span>
+            <input
+              name="leadRegione"
+              defaultValue={leadRegionFilter}
+              className="focus-ring mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink"
+              placeholder="Es. Lombardia"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Provincia</span>
+            <input
+              name="leadProvincia"
+              defaultValue={leadProvinceFilter}
+              className="focus-ring mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink"
+              placeholder="Es. Como"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Categoria</span>
+            <input
+              name="leadCategoria"
+              defaultValue={leadCategoryFilter}
+              className="focus-ring mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink"
+              placeholder="Location, musica..."
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Provenienza</span>
+            <input
+              name="leadFonte"
+              defaultValue={leadSourceFilter}
+              className="focus-ring mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink"
+              placeholder="ads, organico..."
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">Cerca</span>
+            <input
+              name="leadCerca"
+              defaultValue={leadSearchFilter}
+              className="focus-ring mt-2 w-full rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink"
+              placeholder="Codice, nome, email..."
+            />
+          </label>
+          <div className="flex items-end gap-2 xl:col-span-6">
+            <button className="focus-ring rounded-full bg-violet-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-hover">
+              Filtra lead
+            </button>
+            <a
+              href="/gestione?sezione=lead"
+              className="focus-ring rounded-full border border-line bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-petal"
+            >
+              Reset
+            </a>
+          </div>
+        </form>
+
+        <div className="mt-5 overflow-hidden rounded-[1.1rem] border border-line bg-white">
+          <div className="overflow-x-auto">
+            <table className="min-w-[2300px] divide-y divide-line text-left text-xs">
+              <thead className="bg-cream uppercase tracking-[0.12em] text-muted">
+                <tr>
+                  <th className="px-3 py-3 font-semibold">#</th>
+                  <th className="px-3 py-3 font-semibold">Identificativo richiesta</th>
+                  <th className="px-3 py-3 font-semibold">Lead padre</th>
+                  <th className="px-3 py-3 font-semibold">Leads figli</th>
+                  <th className="px-3 py-3 font-semibold">Nome</th>
+                  <th className="px-3 py-3 font-semibold">Cognome</th>
+                  <th className="px-3 py-3 font-semibold">E-mail</th>
+                  <th className="px-3 py-3 font-semibold">Cellulare</th>
+                  <th className="px-3 py-3 font-semibold">Note</th>
+                  <th className="px-3 py-3 font-semibold">Tipo</th>
+                  <th className="px-3 py-3 font-semibold">Provenienza</th>
+                  <th className="px-3 py-3 font-semibold">Regione</th>
+                  <th className="px-3 py-3 font-semibold">Provincia</th>
+                  <th className="px-3 py-3 font-semibold">Macro categoria</th>
+                  <th className="px-3 py-3 font-semibold">Categoria</th>
+                  <th className="px-3 py-3 font-semibold">Vetrina</th>
+                  <th className="px-3 py-3 font-semibold">Budget</th>
+                  <th className="px-3 py-3 font-semibold">Numero invitati</th>
+                  <th className="px-3 py-3 font-semibold">Evento</th>
+                  <th className="px-3 py-3 font-semibold">Data evento</th>
+                  <th className="px-3 py-3 font-semibold">Scadenza</th>
+                  <th className="px-3 py-3 font-semibold">Data conferma</th>
+                  <th className="px-3 py-3 font-semibold">Data creazione</th>
+                  <th className="px-3 py-3 font-semibold">Stato</th>
+                  <th className="px-3 py-3 font-semibold">OTP</th>
+                  <th className="px-3 py-3 font-semibold">Azioni</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {leadRequests.length ? (
+                  leadRequests.map((lead, index) => (
+                    <tr key={lead.id} className={`${leadRowClass(lead.status)} align-top`}>
+                      <td className="px-3 py-3 font-semibold text-muted">{index + 1}</td>
+                      <td className="px-3 py-3 font-semibold text-ink">{lead.requestCode}</td>
+                      <td className="px-3 py-3 text-muted">{lead.parent?.requestCode ?? "-"}</td>
+                      <td className="px-3 py-3 text-ink">{lead._count.children}</td>
+                      <td className="px-3 py-3 text-ink">{lead.firstName}</td>
+                      <td className="px-3 py-3 text-muted">{lead.lastName ?? "-"}</td>
+                      <td className="px-3 py-3">
+                        {lead.email ? (
+                          <span className="rounded-full bg-emerald-700 px-2 py-1 font-semibold text-white">{lead.email}</span>
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3">
+                        <span className="rounded-full bg-emerald-700 px-2 py-1 font-semibold text-white">{lead.phone}</span>
+                      </td>
+                      <td className="max-w-[360px] px-3 py-3 leading-5 text-muted">{lead.notes ?? "-"}</td>
+                      <td className="px-3 py-3 text-muted">{lead.requestType}</td>
+                      <td className="px-3 py-3 text-muted">{lead.utmSource || lead.source}</td>
+                      <td className="px-3 py-3 text-muted">{lead.region}</td>
+                      <td className="px-3 py-3 text-muted">{lead.province}</td>
+                      <td className="px-3 py-3 font-semibold text-ink">{lead.macroCategory}</td>
+                      <td className="px-3 py-3 text-muted">{lead.category}</td>
+                      <td className="px-3 py-3">
+                        {lead.supplierUrl ? (
+                          <a
+                            href={lead.supplierUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="focus-ring rounded-full border border-line bg-white px-3 py-1.5 font-semibold text-ink transition hover:bg-petal"
+                          >
+                            Apri
+                          </a>
+                        ) : (
+                          <span className="text-muted">{lead.supplierProfile ?? "-"}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-muted">{lead.budgetRange ?? "-"}</td>
+                      <td className="px-3 py-3 text-muted">{lead.guestsCount ?? "-"}</td>
+                      <td className="px-3 py-3 text-muted">{lead.eventType}</td>
+                      <td className="px-3 py-3 text-muted">{tableDate(lead.eventDate)}</td>
+                      <td className="px-3 py-3 text-muted">{tableDate(lead.expiresAt)}</td>
+                      <td className="px-3 py-3 text-muted">{tableDate(lead.confirmedAt)}</td>
+                      <td className="px-3 py-3 text-muted">{tableDate(lead.createdAt)}</td>
+                      <td className="px-3 py-3">
+                        <TagBadge tone={leadStatusTone(lead.status)}>{leadStatusLabels[lead.status]}</TagBadge>
+                      </td>
+                      <td className="px-3 py-3">
+                        <TagBadge tone={lead.otpStatus === "verified" ? "green" : lead.otpStatus === "pending" ? "amber" : "gray"}>
+                          {leadOtpLabels[lead.otpStatus]}
+                        </TagBadge>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {(["contacted", "confirmed", "closed", "archived", "spam"] as const).map((status) => (
+                            <form key={`${lead.id}-${status}`} action={adminUpdateLeadRequestStatus}>
+                              <input type="hidden" name="leadId" value={lead.id} />
+                              <input type="hidden" name="status" value={status} />
+                              <button className="focus-ring rounded-full border border-line bg-white px-3 py-1.5 font-semibold text-ink transition hover:bg-petal">
+                                {leadStatusLabels[status]}
+                              </button>
+                            </form>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={26} className="px-4 py-6 text-center text-sm text-muted">
+                      Nessun lead trovato con i filtri selezionati.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       <section className={`mb-8 rounded-[1.6rem] border border-line bg-white p-5 shadow-soft ${activeSection === "chiamate" ? "" : "hidden"}`}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">

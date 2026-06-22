@@ -45,6 +45,8 @@ const ADMIN_HOME = "/gestione";
 const SUPPLIER_REQUEST_STATUSES = ["new_request", "contacted", "closed", "archived"] as const;
 const SUPPORT_REQUEST_STATUSES = ["new_request", "handled", "archived"] as const;
 const ACCOUNT_STATUSES = ["active", "suspended", "deleted"] as const;
+const LEAD_REQUEST_STATUSES = ["new_lead", "otp_pending", "otp_verified", "assigned", "contacted", "confirmed", "closed", "archived", "spam"] as const;
+type LeadRequestStatusValue = (typeof LEAD_REQUEST_STATUSES)[number];
 
 function textValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -1078,6 +1080,34 @@ export async function adminUpdateSupplierRequestStatus(formData: FormData) {
   revalidatePath("/backend");
   revalidatePath("/gestione");
   redirect(ADMIN_HOME);
+}
+
+export async function adminUpdateLeadRequestStatus(formData: FormData) {
+  const leadId = textValue(formData, "leadId");
+  const status = textValue(formData, "status") as LeadRequestStatusValue;
+  await requireAdmin();
+
+  if (!leadId || !LEAD_REQUEST_STATUSES.includes(status as (typeof LEAD_REQUEST_STATUSES)[number])) {
+    throw new Error("Stato lead non valido.");
+  }
+
+  const leadRequest = (prisma as unknown as {
+    leadRequest: {
+      update: (args: { where: { id: string }; data: { status: LeadRequestStatusValue; confirmedAt?: Date } }) => Promise<unknown>;
+    };
+  }).leadRequest;
+
+  await leadRequest.update({
+    where: { id: leadId },
+    data: {
+      status,
+      confirmedAt: status === "confirmed" ? new Date() : undefined
+    }
+  });
+
+  revalidatePath("/backend");
+  revalidatePath("/gestione");
+  redirect(`${ADMIN_HOME}?sezione=lead`);
 }
 
 export async function adminUpdateSupportRequestStatus(formData: FormData) {

@@ -49,6 +49,25 @@ enum SupportRequestStatus {
   archived
 }
 
+enum LeadRequestStatus {
+  new_lead
+  otp_pending
+  otp_verified
+  assigned
+  contacted
+  confirmed
+  closed
+  archived
+  spam
+}
+
+enum LeadOtpStatus {
+  not_requested
+  pending
+  verified
+  failed
+}
+
 enum ArticleStatus {
   draft
   scheduled
@@ -356,6 +375,59 @@ model SupportRequest {
 
   @@index([status])
   @@index([createdAt])
+}
+
+model LeadRequest {
+  id              String            @id @default(cuid())
+  requestCode     String            @unique
+  parentId        String?
+  parent          LeadRequest?      @relation("LeadRequestTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children        LeadRequest[]     @relation("LeadRequestTree")
+  childIndex      Int?
+  status          LeadRequestStatus @default(new_lead)
+  otpStatus       LeadOtpStatus     @default(not_requested)
+  firstName       String
+  lastName        String?
+  email           String?
+  phone           String
+  notes           String?
+  requestType     String            @default("onboard")
+  source          String            @default("organizzaevento")
+  sourcePath      String?
+  utmSource       String?
+  utmCampaign     String?
+  region          String
+  province        String
+  cityOrArea      String?
+  macroCategory   String
+  category        String
+  supplierProfile String?
+  supplierUrl     String?
+  budgetRange     String?
+  guestsCount     Int?
+  eventType       String
+  eventDate       DateTime?
+  expiresAt       DateTime?
+  confirmedAt     DateTime?
+  otpVerifiedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  assignedTo      String?
+  internalNotes   String?
+  ipHash          String?
+  userAgentHash   String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([parentId])
+  @@index([status])
+  @@index([otpStatus])
+  @@index([region])
+  @@index([province])
+  @@index([macroCategory])
+  @@index([category])
+  @@index([source])
+  @@index([createdAt])
+  @@map("lead_requests")
 }
 
 model EditorialArticle {
